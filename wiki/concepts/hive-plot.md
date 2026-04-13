@@ -61,6 +61,7 @@ When nodes on the **same axis** need to connect to each other, that axis is dupl
 - [[applications-bioinformatics]] — Strongest adoption (gene networks, microbiome, protein interactions)
 - [[applications-cybersecurity]] — Most innovative (ML featurization of hive plot images)
 - [[applications-software-engineering]] — Code dependency visualization
+- [[gnn-heterogeneity-hive-plots|GNN evaluation]] — Proposed: using [[hive-plot-matrix|HivePlotMatrix]] to diagnose [[graph-neural-networks|GNN]] classification heterogeneity across graph structure
 
 ## See Also
 

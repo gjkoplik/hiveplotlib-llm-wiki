@@ -2,8 +2,8 @@
 title: Overview
 type: overview
 created: 2026-04-06
-updated: 2026-04-06
-sources: [krzywinski-2012, hiveplotlib-python-repo, hiveplotlib-javascript-repo, perez-2021-hype, bostock-2012-d3-hive-plots, nollenburg-2023, krzywinski-2017-differential]
+updated: 2026-04-13
+sources: [krzywinski-2012, hiveplotlib-python-repo, hiveplotlib-javascript-repo, perez-2021-hype, bostock-2012-d3-hive-plots, nollenburg-2023, krzywinski-2017-differential, ma-2021-subgroup-fairness, kipf-2017-gcn, subramonian-2024-degree-bias, gnnfairviz-2025]
 tags: [hive-plot, hiveplotlib, network-visualization]
 ---
 
@@ -25,7 +25,7 @@ The method has been adopted across multiple domains — most strongly in [[appli
 
 **[[hiveplotlib]]** is the main hub of research and development. It is a comprehensive Python library (by the wiki maintainer) supporting six visualization backends, with 46 example notebooks, 100% test coverage, and features including:
 - High-level `HivePlot` API and low-level `BaseHivePlot` for full control
-- [[hive-plot-matrix|HivePlotMatrix]] for comparative visualization (in development)
+- [[hive-plot-matrix|HivePlotMatrix]] for comparative visualization (released in v0.27)
 - [[p2cp|Polar Parallel Coordinates]] for tabular data
 - Numba-accelerated [[bezier-curves|Bézier curve]] generation
 
@@ -35,18 +35,30 @@ The method has been adopted across multiple domains — most strongly in [[appli
 
 | Category | Count |
 |----------|-------|
-| Sources ingested | 7 |
+| Sources ingested | 11 |
 | Entity pages | 4 |
-| Concept pages | 11 |
-| Analysis pages | 1 |
-| **Total wiki pages** | **23** (+ index, log, overview) |
+| Concept pages | 14 |
+| Analysis pages | 2 |
+| **Total wiki pages** | **31** (+ index, log, overview) |
+
+## Research Directions
+
+### GNN Heterogeneity Diagnosis
+
+Hive plots aren't just a visualization tool — they are potentially a **diagnostic tool for machine learning evaluation**. The [[gnn-heterogeneity-hive-plots|GNN heterogeneity proposal]] argues that [[hive-plot-matrix|HivePlotMatrix]] can expose classification performance variation that standard [[gnn-evaluation|aggregate GNN metrics]] mask — at both the node level and, critically, the **edge level**.
+
+The core idea: train a [[graph-neural-networks|GNN]] on a node classification benchmark (e.g., GCN on Cora), then build a HivePlotMatrix where nodes are partitioned by structural properties (degree, community, local homophily, training-set distance) and edges are colored by correct vs. misclassified. The matrix reveals *which structural decomposition exposes the most [[structural-heterogeneity|performance heterogeneity]]* — answering "your model is 95% accurate overall, but where does it fail?"
+
+A deep reading of [[ma-2021-subgroup-fairness|Ma, Deng & Mei (NeurIPS 2021)]] confirms the theoretical foundation: they prove accuracy disparity exists across structural subgroups and identify training-set distance as the key predictor. But their analysis is purely tabular (bar charts), single-variable-at-a-time, and node-level only. A survey of the citing literature ([[subramonian-2024-degree-bias|Subramonian et al. 2024]] — 38 papers on degree bias) and the visual analytics space ([[gnnfairviz-2025|GNNFairViz]]) confirms that **no existing work** uses network visualization for structural subgroup diagnosis, and **no work at all** examines edge-level heterogeneity in GNN performance. The hive plot approach is novel on multiple axes: multi-dimensional sweep, edge-aware visualization, continuous structural gradients, and visual model cards.
+
+This direction requires no new [[hiveplotlib]] features — only application of existing `HivePlotMatrix.from_variable_sweep()` and `networkx_to_nodes_edges()` functionality.
 
 ## Open Questions and Next Steps
 
 - **Neuroscience gap:** Brain connectome networks are a natural fit for hive plots but no published work exists — this is an unexplored opportunity.
 - **Social network analysis:** Surprisingly underexplored given the method's strengths for community detection.
 - **Differential hive plots in hiveplotlib:** Not yet implemented — could be a valuable addition for version comparison or temporal analysis.
-- **Interactive HivePlotMatrix:** Currently matplotlib/datashader only. Bokeh or Plotly backends would enable browser-based panel exploration, achieving what [[perez-2021-hype|HyPE]] did but within the modern hiveplotlib ecosystem.
+- **Interactive HivePlotMatrix:** HivePlotMatrix (released in v0.27) supports matplotlib and datashader. Bokeh or Plotly backends would enable browser-based panel exploration, achieving what [[perez-2021-hype|HyPE]] did but within the modern hiveplotlib ecosystem.
 - **Automated parameter selection:** Given NP-completeness, could heuristic/approximate optimization (genetic algorithms, simulated annealing) help suggest good axis assignments?
 
 ## See Also

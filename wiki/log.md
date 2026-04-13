@@ -1,7 +1,7 @@
 ---
 title: Wiki Log
 type: log
-updated: 2026-04-06
+updated: 2026-04-13
 ---
 
 # Hive Plot Research Wiki — Log
@@ -47,3 +47,28 @@ Performed first wiki lint pass. Results below.
 
 **Pages created this session:** 23 content pages + index/overview/log
 **Pages updated this session:** hive-plot.md, hive-plot-matrix.md, martin-krzywinski.md
+
+## [2026-04-13] ingest + analysis | GNN Heterogeneity Research Direction
+Extended wiki with GNN evaluation research direction. Created concept pages for graph neural networks, GNN evaluation metrics, and structural heterogeneity. Created research proposal analysis page exploring use of HivePlotMatrix to expose classification heterogeneity hidden by aggregate GNN metrics. Added source stubs for Ma et al. 2021 (subgroup fairness) and Kipf & Welling 2017 (foundational GCN). Updated 4 existing pages with cross-references. Pages created: 6. Pages updated: 7 (hive-plot-matrix.md, hiveplotlib.md, hive-plot.md, applications-cybersecurity.md, index.md, overview.md, log.md).
+
+## [2026-04-13] query + ingest | Deep Dive on Ma et al. 2021 and GNN Fairness Literature
+Full reading of Ma, Deng & Mei 2021 PDF + citation landscape research. Key findings:
+
+**Ma et al. corrections and details:** Authors are Jiaqi Ma, Junwei Deng, Qiaozhu Mei (UMich), not Jing Ma et al. as previously recorded. Paper provides PAC-Bayesian generalization bound (Theorem 3) showing training-set distance (ε_m) is the key predictor of subgroup accuracy. Node centrality (degree, closeness, betweenness, PageRank) shows no clear monotonic trend in their 5-bin bar charts — but this does not rule out non-linear patterns that continuous hive plot axes could capture.
+
+**Citation landscape (2022–2025):** Surveyed citing papers including Subramonian et al. (NeurIPS 2024, 38-paper degree bias survey), GraphPatcher (NeurIPS 2023), DegFairGNN (AAAI 2023), FairACE (2025). All metrics/training-focused, no visualization frameworks. GNNFairViz (IEEE TVCG 2025) is the closest visual analytics competitor but targets demographic-attribute fairness, not structural subgroup diagnosis.
+
+**Novelty confirmed on three axes:** (1) No existing work uses network visualization for structural subgroup performance diagnosis. (2) Edge-level heterogeneity is entirely unexplored in the GNN fairness literature — nobody has examined whether misclassification errors cluster along specific edge types. (3) Multi-dimensional decomposition sweep has no precedent.
+
+**Analysis page reframed:** Added training-set distance and geodesic distance as sweep variables (per Ma et al.). Elevated edge-level heterogeneity as a distinct and novel contribution. Added Related Work section positioning vs. Ma et al., Subramonian et al., and GNNFairViz. Kept degree/centrality as important sweep candidates (non-linear patterns may exist beyond what bar charts capture).
+
+Pages created: 2 (subramonian-2024-degree-bias.md, gnnfairviz-2025.md). Pages rewritten: 1 (ma-2021-subgroup-fairness.md — from stub to full source page). Pages updated: 3 (gnn-heterogeneity-hive-plots.md, index.md, overview.md).
+
+## [2026-04-13] ingest | Subramonian, Kang & Sun 2024 (Degree Bias)
+Full web-research ingest. Authors: Arjun Subramonian, Jian Kang, Yizhou Sun (UCLA). Surveys 38 papers on GNN degree bias, catalogs 10+ competing hypotheses, finds many are contradictory (notably H5 vs. H10 on representation variance). Provides first rigorous probabilistic bounds via collision probability, prediction homogeneity, and training dynamics. Key insight: RW and SYM graph filters create degree bias through fundamentally different geometric mechanisms. Heterophilic graphs show weaker degree bias. Visualization: standard scatter/PCA plots only, no network visualization. New sweep variable candidates for HivePlotMatrix: inverse collision probability, prediction homogeneity. Rewrote stub to full source page. Updated concept pages: structural-heterogeneity.md, gnn-evaluation.md, graph-neural-networks.md.
+
+## [2026-04-13] ingest | GNNFairViz (Ye et al. 2025)
+Full web-research ingest. Authors: Xinwu Ye et al. (Fudan + Cagliari). Multi-view interactive visual analytics for GNN fairness. Core contribution: bias taxonomy separating model bias from data bias (attribute + structural) via counterfactual what-if comparisons. Key finding: "Overwhelming Effect" — minority node representations dominated by majority neighborhoods through message passing. Uses embedding projections and connectivity summaries, NOT hive plots or rational layouts. Focused on demographic-attribute fairness (gender, race), NOT structural subgroup fairness. Code public on GitHub and PyPI. Confirmed as closest visual analytics competitor but operating in fundamentally different space from HivePlotMatrix proposal. Rewrote stub to full source page. Updated concept pages: gnn-evaluation.md, graph-neural-networks.md.
+
+## [2026-04-13] analysis | Cora Prototype Implementation Plan
+Created `analyses/cora-prototype-plan.md` — concrete 5-phase implementation plan for building the GNN heterogeneity HivePlotMatrix prototype on Cora. References actual hiveplotlib API: `HivePlotMatrix.from_variable_sweep()`, `networkx_to_nodes_edges()`, `NodeCollection.create_partition_variable()`, tagged `Edges` for edge-level analysis. Includes: environment setup, GNN training (GCN/GAT/GraphSAGE via PyTorch Geometric), structural property computation (degree, centrality, community, local homophily, training-set distance per Ma et al.), edge-level metadata (error score, cross-group edges, degree ratio), partition sweep, model comparison, and edge-focused visualization. Plan is self-contained for execution in a fresh session.

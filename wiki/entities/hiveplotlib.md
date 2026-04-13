@@ -15,7 +15,7 @@ hiveplotlib is a Python library for generating and visualizing static [[hive-plo
 
 ## Status
 
-- **Current version:** 0.27.0a1 (unreleased; latest stable 0.26.2)
+- **Current version:** 0.27.0 (released 2026-04-10)
 - **Python support:** 3.10+
 - **Repository:** GitLab (private)
 - **Install:** `pip install hiveplotlib`
@@ -31,7 +31,7 @@ hiveplotlib is a Python library for generating and visualizing static [[hive-plo
 ### Main Classes
 - **`BaseHivePlot`** — Low-level construction (manual axes, node placement, edge connection)
 - **`HivePlot`** — High-level interface (partition → sort → build → plot)
-- **`HivePlotMatrix`** — Comparative grid of hive plots (see [[hive-plot-matrix]])
+- **`HivePlotMatrix`** — Comparative grid of hive plots, new in v0.27 (see [[hive-plot-matrix]])
 - **`P2CP`** — [[p2cp|Polar Parallel Coordinates]] for tabular data
 
 ### Visualization Backends
@@ -52,9 +52,12 @@ Six backends: matplotlib (default), bokeh, holoviews-bokeh, holoviews-matplotlib
 
 ## Development Priorities
 
-- HivePlotMatrix (unreleased, in development)
-- Numba acceleration for large networks
-- Additional backends and interactivity
+- Additional backends and interactivity for HivePlotMatrix (currently matplotlib + datashader only)
+- Exploring GNN evaluation applications ([[gnn-heterogeneity-hive-plots]])
+
+## Research Directions
+
+- [[gnn-heterogeneity-hive-plots]] — Using HivePlotMatrix to diagnose GNN classification heterogeneity. The `networkx_to_nodes_edges()` converter provides the integration pathway from PyTorch Geometric / NetworkX graph data with GNN predictions into hiveplotlib's data structures.
 
 ## See Also
 

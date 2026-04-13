@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-04-06
+updated: 2026-04-13
 ---
 
 # Hive Plot Research Wiki — Index
@@ -19,6 +19,10 @@ updated: 2026-04-06
 - [[bostock-2012-d3-hive-plots|Bostock 2012 — D3 Hive Plots]] — Influential D3.js implementation with Flare dependency graph (1 source)
 - [[nollenburg-2023-computing-hive-plots|Nöllenburg & Wallinger 2023]] — Formal combinatorial framework proving hive plot construction is NP-complete (1 source)
 - [[krzywinski-2017-differential|Krzywinski et al. 2017 — Differential Hive Plots]] — Visual diff between two networks (1 source)
+- [[ma-2021-subgroup-fairness|Ma, Deng & Mei 2021 — Subgroup Fairness]] — PAC-Bayesian analysis proving GNN accuracy varies by subgroup; training-set distance is key driver (1 source)
+- [[kipf-2017-gcn|Kipf & Welling 2017 — GCN]] — Foundational graph convolutional network paper (stub — 0 sources)
+- [[subramonian-2024-degree-bias|Subramonian, Kang & Sun 2024 — Degree Bias]] — NeurIPS survey of 38 papers + first rigorous probabilistic bounds for degree bias; filter-type matters (0 sources — web research)
+- [[gnnfairviz-2025|GNNFairViz (Ye et al. 2025)]] — Multi-view visual analytics for GNN demographic-attribute fairness; counterfactual bias diagnosis (0 sources — web research)
 
 ## Entities
 
@@ -40,7 +44,12 @@ updated: 2026-04-06
 - [[applications-bioinformatics]] — Strongest adoption domain: gene networks, microbiome, protein interactions (2 sources)
 - [[applications-cybersecurity]] — Most innovative domain: ML featurization of hive plot images (0 sources — web research)
 - [[applications-software-engineering]] — Code dependency visualization (2 sources)
+- [[graph-neural-networks]] — GNN architectures, message passing, benchmarks (2 sources)
+- [[gnn-evaluation]] — Standard GNN metrics and the structural heterogeneity gap (2 sources)
+- [[structural-heterogeneity]] — Uneven graph topology and its impact on GNN performance (2 sources)
 
 ## Analyses
 
 - [[karate-club-walkthrough]] — Step-by-step hiveplotlib walkthrough using Zachary's Karate Club (1 source)
+- [[gnn-heterogeneity-hive-plots]] — Research proposal: HivePlotMatrix for GNN classification diagnostics, node- and edge-level (7 sources)
+- [[cora-prototype-plan]] — Implementation plan for Cora GNN evaluation prototype (3 sources)

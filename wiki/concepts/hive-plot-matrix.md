@@ -17,7 +17,7 @@ Krzywinski's 2012 paper included a 5×5 matrix of hive plots showing a single ne
 
 ## Implementation in hiveplotlib
 
-The `HivePlotMatrix` class (currently unreleased, in development) supports four construction modes:
+The `HivePlotMatrix` class (released in v0.27.0) supports four construction modes:
 
 | Mode | Method | Description |
 |------|--------|-------------|
@@ -33,6 +33,12 @@ The `HivePlotMatrix` class (currently unreleased, in development) supports four 
 - Compare how different structural parameters reveal different patterns in the same network
 - Compare subgroups within a network (e.g., disease subsystems in [[krzywinski-2012]])
 - Explore how partitioning choices affect the visualization
+
+## Research Directions
+
+### GNN Evaluation Diagnostics
+
+A [[hive-plot-matrix|HivePlotMatrix]] is a natural tool for diagnosing [[graph-neural-networks|GNN]] classification performance across graph structure. By sweeping partitioning variables (degree bins, community membership, local homophily) across the matrix and color-coding edges by correct vs. misclassified predictions, a HivePlotMatrix can expose [[structural-heterogeneity|structural performance heterogeneity]] that aggregate metrics mask. The `from_variable_sweep()` construction mode is the natural fit — each row or column represents a different structural decomposition of the same predictions. See [[gnn-heterogeneity-hive-plots]] for the full research proposal.
 
 ## See Also
 
