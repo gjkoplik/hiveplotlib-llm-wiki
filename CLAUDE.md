@@ -30,7 +30,9 @@ These local repos are primary references. The LLM reads from them but never modi
 │   ├── sources/       # One summary page per ingested source
 │   ├── entities/      # Pages for specific things (people, libraries, tools)
 │   ├── concepts/      # Pages for ideas, methods, techniques
-│   └── analyses/      # Filed query results, comparisons, deep dives
+│   ├── analyses/      # Filed query results, comparisons, deep dives
+│   ├── plans/         # Working plans (scratch, version-controlled but not curated)
+│   └── adr/           # Architecture Decision Records (distilled from plans)
 └── .obsidian/         # Obsidian vault config
 ```
 
