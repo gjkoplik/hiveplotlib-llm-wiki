@@ -31,7 +31,8 @@ These local repos are primary references. The LLM reads from them but never modi
 │   ├── entities/      # Pages for specific things (people, libraries, tools)
 │   ├── concepts/      # Pages for ideas, methods, techniques
 │   ├── analyses/      # Filed query results, comparisons, deep dives
-│   ├── plans/         # Working plans (scratch, version-controlled but not curated)
+│   ├── plans/         # Active working plans (scratch, version-controlled, not curated)
+│   │   └── archived/  # Shipped plans, moved here on confirmation (kept for history)
 │   └── adr/           # Architecture Decision Records (distilled from plans)
 └── .obsidian/         # Obsidian vault config
 ```
