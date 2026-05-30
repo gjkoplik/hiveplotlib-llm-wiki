@@ -270,6 +270,7 @@ NOT committed workstreams. Each entry carries theme, knob, the capability it unl
 - **gnn-heterogeneity mapping.** Edge-color-by-metric; "errors concentrate on specific edge types" -> a structural edge metric replaces correct/misclassified.
 - **Section-worth.** Distinct from `visualizing_edge_metadata.ipynb` (gallery: attach a column) and `edge_kwarg_hierarchy.ipynb` (the precedence reference) and `computing_graph_metrics.ipynb`'s link-prediction *mechanic* section. T3 is the *interpretive* arc.
 - **De-confliction note.** Ships with its T4 forward-link valid (T4 lands same phase).
+- **Phrasing caveat (captured 2026-05-29, from the WS-A gallery trim).** When T3 makes the inter-vs-intra Jaccard reading, phrase it as a *tendency*, not an absolute. On the Karate render the cross-club (inter-axis) edges run lower on average than the within-club edges, but at least one within-club edge also carries a low Jaccard coefficient, so "low Jaccard = cross-club edge" is false. Before asserting the reading, verify the inter/intra Jaccard split as a data check (group `Edges.data` by inter vs. intra and compare distributions) and have viz-critic confirm the figure communicates it. This is the exact interpretive sentence cut from `computing_graph_metrics.ipynb`'s "Link Prediction Scores as an Edge Metric" section (out-of-scope for the gallery, and inaccurate as phrased); the gallery now keeps only the mechanic.
 
 ### T4 -- Comparing Lenses with a Hive Plot Matrix (Phase 2; the meta-tool)
 
@@ -316,6 +317,10 @@ User-decided naming updates. Both are pure naming; no scope, workstream, dataset
 3. **Section title-trend note added** to the Naming audit: the section's tutorial titles trend toward the "X with Graph Metrics" parallel (T1 "Finding a Partition with Graph Metrics", T2 "Sorting with Graph Metrics"); final titles are settled per-tutorial at authoring.
 
 No dispatch implied by this amendment (naming only). Next dispatch is unchanged: WS-1 (scaffold + migrate, soft-blocked on T1 shipping) and the calibration checkpoint before WS-2 authoring.
+
+### 2026-05-29 -- T3 phrasing caveat captured (In-scope tweak)
+
+Recorded a correctness/phrasing caveat in the T3 "Reading the Edges" roadmap entry (a placeholder refinement; no scope, dataset, workstream, or teaching change). Source: while trimming the `computing_graph_metrics.ipynb` gallery's "Link Prediction Scores as an Edge Metric" section back to mechanics (the interpretive figure-reading belongs to T3), the cut sentence was also found inaccurate. It claimed low-Jaccard edges are the cross-club (inter-axis) ones, but at least one within-club edge carries a low coefficient on the Karate render, so the clean inter=low / intra=high dichotomy is false. T3 must phrase the inter-vs-intra reading as a tendency and verify the split (data check on `Edges.data` plus viz-critic on the render) before asserting it. No dispatch implied.
 
 ## Implementation log
 
