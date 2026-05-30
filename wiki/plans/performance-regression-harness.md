@@ -89,8 +89,19 @@ Sequenced so the equivalence wall (A) and the measurement primitives (B) land be
 - A regression test builds a small fixture via the parametrized `example_hive_plot` and asserts the current single-shot datashader path's median-of-N timing and peak RSS stay within a tolerance band of a recorded baseline (baseline stored in-repo as a small committed constant/JSON, NOT a swept CSV). Tolerance is generous enough to survive CI-machine variance, tight enough to catch a real regression (document the chosen band and its rationale).
 - The regression assertions use Workstream B's `measure_peak_rss` and `time_median_of_n`, and the equivalence assertions from Workstream A gate any alternate path.
 - Tests are marked `@pytest.mark.performance` and run in CI; small-graph regression (the "no regression on small graphs" requirement) is asserted explicitly.
+- **Small-scale streaming-vs-single-shot guard.** The scaling plan's WS2 (chunked rasterization) and WS3 (fused build) share one streaming-vs-single-shot threshold policy; below the threshold, chunking is slower than single-shot. So the regression band must cover a **small-graph scenario explicitly** where the single-shot path is the one expected to be selected, catching an accidental "always stream" policy change as a small-scale regression. Make the small-graph scenario a first-class, named entry in the benchmark scenarios (not just an incidental fixture size) so it can't be dropped silently.
+- **Rolling-baseline cumulative benchmark scenarios.** The per-MR no-regression gate above catches a single workstream that regresses on its own, but not compound behavior: (a) a benefit masked when a workstream is measured in isolation (e.g. the scaling plan's WS2 memory win is only partly realized until WS3 lands), and (b) two individually-neutral changes interacting into a regression. So the benchmark-scenario set supports re-running a representative set at **small / medium / large** scales against a **rolling baseline** that is updated as each scaling workstream merges, and the report surfaces both the **per-workstream marginal delta** and the **cumulative joint effect** versus the original pre-chain baseline. This is a benchmark-scenario / reporting requirement, not a new equivalence concern; it reuses Workstream A's equivalence check unchanged. Done-when: scenarios are parametrized over the three scales; the baseline store supports an updatable rolling value distinct from the frozen original; the report (or test output) prints marginal and cumulative deltas side by side.
 - `runners/performance/README.md` documents: the gate's purpose, the RSS-subprocess-over-tracemalloc decision, the median-of-N choice, the equivalence-tolerance rationale, and the in-repo-vs-deferred-sweep boundary.
 - Full suite green under `make test` (`-n 7`, 100% coverage, warnings-as-errors); `make ty` clean; CHANGELOG entry added.
+
+## Cross-workstream interaction support
+
+Surfaced in maintainer discussion (2026-05-29). The per-MR gate is per-workstream by construction; two interaction patterns need explicit harness support, both folded into Workstream C's benchmark scenarios:
+
+1. **Cumulative / rolling-baseline benchmark across the chain.** Re-run a representative benchmark set at small / medium / large scales against a rolling baseline updated as each scaling workstream merges, reporting both the per-workstream marginal delta and the cumulative joint effect versus the original pre-chain baseline. Catches benefits masked in isolation (WS2 memory win only fully realized after WS3) and two neutral changes interacting into a regression. Benchmark-scenario / reporting requirement, not a new equivalence concern.
+2. **Small-scale no-regression for the shared streaming-vs-single-shot threshold.** WS2 (chunked rasterization) and WS3 (fused build) share one threshold policy; below it, chunking is slower. The regression band must assert no-regression at small scale specifically, where single-shot should stay selected, so an accidental "always stream" policy change is caught.
+
+The full cross-workstream interaction catalog (all interaction pairs, not just the harness-side ones) lives in `wiki/wiki/plans/scaling-large-networks.md` under "Cross-workstream performance interactions" (added in parallel). This plan records only the two harness-side requirements above.
 
 ## Out of scope (stated explicitly)
 
@@ -107,5 +118,15 @@ Sequenced so the equivalence wall (A) and the measurement primitives (B) land be
 ## Implementation log
 
 Append-only. One line per completed workstream.
+
+## Plan amendments
+
+Append-only. Concise per mental-model rule 17.
+
+### 2026-05-30 — Two cross-workstream interaction requirements (from 2026-05-29 maintainer discussion)
+
+- **In-scope tweak (Workstream C): small-scale streaming-vs-single-shot guard.** Added a done-when so the regression band covers a named small-graph scenario where single-shot should stay selected, catching an accidental "always stream" change in the threshold policy WS2 and WS3 of the scaling plan share.
+- **In-scope tweak (Workstream C): rolling-baseline cumulative benchmark.** Added a done-when so benchmark scenarios run at small/medium/large scales against a rolling baseline updated as each scaling workstream merges, reporting per-workstream marginal delta and cumulative joint effect. Reuses Workstream A's equivalence check unchanged; no new equivalence concern.
+- Added a "Cross-workstream interaction support" section summarizing both, with a pointer to the full interaction catalog in `wiki/wiki/plans/scaling-large-networks.md` ("Cross-workstream performance interactions", added in parallel). No new workstream, no entry-point or attribute-read change (no feasibility audit needed).
 </content>
 </invoke>

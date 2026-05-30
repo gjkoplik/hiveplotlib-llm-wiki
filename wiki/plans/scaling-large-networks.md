@@ -440,6 +440,8 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - Harness-gated validation: the performance-regression harness confirms no speed regression on the standard sweep and records the in-RAM memory reduction on a multi-axis-pair graph.
 - CHANGELOG entry added.
 
+**Interactions:** see "Cross-workstream performance interactions" §4 (WS4 must re-express the integer-index gather through narwhals; do not bake pandas `.iloc`-specific assumptions into it) and §3 (the integer-index structure is extended, not redesigned, by WS5's Dask non-materializing storage).
+
 ### Workstream 2: Reduction-aware chunked rasterization (datashader backend)
 
 **Status:** not started
@@ -465,6 +467,8 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - Docstring note explaining chunked aggregation, the `stream_chunk_threshold` semantics, and the var/std carve-out added to the three datashader entry points.
 - API critic post-impl review section filled in this plan.
 
+**Interactions:** see "Cross-workstream performance interactions" §1 (the streaming-vs-single-shot threshold is ONE shared policy consumed by both WS2 and WS3, not set per-workstream; per-chunk `cvs.line` is a small-scale speed regression, so the harness must assert no-regression at small scale), §2 (WS2's memory win is only partly realized until WS3; measure cumulative peak-RSS, not per-workstream deltas, to avoid undervaluing it), and §3 (WS5 later lets the var/std reductions WS2 punts to single-shot stream over a Dask/cuDF frame).
+
 ### Workstream 3: Fused build + internal streaming (resident-memory unlock)
 
 **Status:** not started
@@ -480,6 +484,7 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 
 **Done when:**
 - A fused build-and-rasterize path samples each `(g1, g2, tag)` chunk's curves, hands them to the Workstream 2 per-chunk aggregator, and discards them, never persisting all curves on the object (`hive_plot_edges[...][tag]["curves"]` is not materialized for all chunks at once on this path).
+- **Non-persistence is datashader-path-only.** The vector backends (matplotlib, bokeh, plotly, holoviews) consume the materialized curve geometry to draw lines, so they require the persisted `hive_plot_edges[...]["curves"]` arrays. The fused path's non-persistence applies only to the datashader rasterization path; the staged `construct_curves` + persist must remain for the vector backends. Non-persistence is never generalized globally. (See "Cross-workstream performance interactions" §5.)
 - The two-stage `construct_curves` → rasterize path remains the default and the equivalence baseline; the fused path is selected via the streaming opt-in (`stream_chunk_threshold`, and for foreign frames `use_dask`). It does not delete or change the default two-stage behavior.
 - Per-chunk metadata is retained alongside per-chunk curves so the metadata-coloring trick survives; a test confirms a metadata-colored fused-path plot matches the two-stage plot within tolerance.
 - A resident-memory test (skipped by default if RAM unavailable) confirms the fused path's peak resident curve storage stays O(largest_chunk × num_steps × 4 bytes), not O(total_edges × num_steps × 4 bytes), on a synthetic 10M-edge graph.
@@ -489,6 +494,8 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - CHANGELOG entry added.
 - Docstring note on the fused path's resident-memory characteristics added.
 - API critic post-impl review section filled in this plan.
+
+**Interactions:** see "Cross-workstream performance interactions" §1 (the fused path always chunks; its streaming-vs-single-shot threshold is the SAME shared policy as WS2's, not a second per-workstream threshold; harness asserts no-regression at small scale), §2 (this workstream is what finally removes the resident curve cost WS2 leaves behind; cumulative peak-RSS along the chain is the right measure), and §5 (the non-persistence done-when bullet above).
 
 ### Workstream 4: Narwhals at the input boundary
 
@@ -524,6 +531,8 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - Docstring updates on `NodeCollection.__init__`, `Edges.__init__`, the `data` properties.
 - API critic post-impl review section filled in this plan.
 
+**Interactions:** see "Cross-workstream performance interactions" §4 (this workstream re-expresses WS1's integer-index gather through narwhals; after it lands, measure the pandas path before/after to confirm the abstraction tax is ~0, since a small constant tax could mask a WS1 micro-win).
+
 ### Workstream 5: Dask + cuDF/GPU passthrough
 
 **Status:** not started
@@ -554,7 +563,43 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - CHANGELOG entry naming the new parameter and the loud-failure default.
 - API critic post-impl review section filled.
 
+**Interactions:** see "Cross-workstream performance interactions" §3 (this workstream retroactively improves WS2: the var/std reductions WS2 punts to single-shot can stream once datashader gets a Dask/cuDF frame and combines moment aggregates across partitions; the non-materializing storage here extends WS1's integer-index structure rather than redesigning it).
+
 **Dependency:** Workstream 5 requires Workstreams 1, 3, and 4 to land first. Workstream 1 fixes the membership-storage structure whose Dask non-materializing counterpart lands here; Workstream 3's fused build produces the per-chunk streaming the Dask/cuDF path rides on; Workstream 4 routes input dataframes through narwhals so Dask and cuDF flow through validation/filtering without bespoke code paths.
+
+## Cross-workstream performance interactions
+
+These workstreams ship as separate MRs, but their performance characteristics are coupled. The per-MR harness gate catches a workstream that regresses on its own; what it cannot catch is compound behavior, where a workstream's full value is masked until a later workstream lands, or where two individually-neutral changes interact badly. The interactions below are recorded so that when the maintainer turns each workstream into its own issue, the relevant cross-effect surfaces and informs how that workstream is evaluated.
+
+### 1. WS2/WS3 chunking overhead at small scale (the one genuine regression risk)
+
+Per-chunk `cvs.line` is slightly slower than one single-shot call (per-call overhead, less vectorization), so streaming is a speed *regression* below the scale where memory forces it. WS2 introduces the streamed path; WS3's fused build always chunks (it never materializes). The risk: if WS2 and WS3 each set the streaming-vs-single-shot threshold independently, a small-graph regression ships.
+
+Mitigation: the streaming-vs-single-shot threshold must be ONE shared policy decision in one place, consumed by both WS2 and WS3, not set per-workstream. The harness must assert no-regression at small scale after each merge. (Cross-ref WS2, WS3.)
+
+### 2. WS2's memory win is only partly realized without WS3 (masked benefit, not a regression)
+
+WS2 alone removes only the transient datashader concat copy; the resident materialized curves (~808 MB per 1M edges at `num_steps=100` float32) remain until WS3 lands. Benchmarking WS2 in isolation shows a modest memory delta and risks undervaluing it.
+
+Mitigation: measure cumulative peak-RSS along the chain, not just per-workstream deltas. (Cross-ref WS2, WS3.)
+
+### 3. WS5 retroactively improves WS2 (positive interaction)
+
+The var/std reductions that WS2 must punt to single-shot can stream once WS5 feeds datashader a Dask/cuDF frame (datashader combines moment aggregates across partitions). WS5's non-materializing storage also extends WS1's integer-index structure. These compound favorably. (Cross-ref WS2, WS5; storage link WS1 ↔ WS5.)
+
+### 4. WS4 will re-touch WS1's code (rework, not regression)
+
+WS1's integer-index gather, if written with pandas `.iloc`, has no polars equivalent, so narwhals (WS4) must re-express it.
+
+Mitigation: WS1 should not bake pandas-specific indexing assumptions into the gather. After WS4, measure the pandas path before and after to confirm the narwhals abstraction tax is ~0 (the plan estimates ~2% total / near-zero per-op; verify it, since a small constant tax could mask a WS1 micro-win). (Cross-ref WS1, WS4.)
+
+### 5. WS3's "never persist" is datashader-path-only (a backend-architecture constraint)
+
+The vector backends (matplotlib, bokeh, plotly, holoviews) consume the materialized curve geometry to draw lines, so they require the persisted `hive_plot_edges[...]["curves"]` arrays. WS3's non-persistence can apply only to the datashader rasterization path; the staged `construct_curves` + persist must remain for the vector backends. WS3 must never generalize non-persistence globally. (Cross-ref WS3; stated in WS3's done-when.)
+
+### What escapes per-MR gating
+
+The per-MR harness no-regression gate catches any single workstream that regresses on its own. What escapes per-MR gating is compound behavior: masked benefits (interaction 2), and the rare case of two individually-neutral changes interacting badly (interaction 1). That is why the harness needs a cumulative / rolling-baseline benchmark across the chain, not just per-MR deltas. This requirement is being recorded in the parallel `wiki/wiki/plans/performance-regression-harness.md`.
 
 ## Plan amendments
 
@@ -757,6 +802,16 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 **Trigger:** Maintainer discussion 2026-05-29 / restructure pass. The original plan cited `__store_edge_ids` at `hiveplot.py:580-647` and `add_edge_ids` at `:707-749`; the working tree has `__store_edge_ids` membership storage at `hiveplot.py:797` and `add_edge_ids` at `:801+`. The datashader metadata read is at `:203-204` (boolean-mask indexing) with the density-correction divide at `:242-247`.
 **Workstreams affected:** Workstreams 1, 2, 4, 5 (Files, Patterns this replaces).
 **Change:** Replaced the stale `580-647` and `707-749` references with `:797` and `:801+` respectively, and pinned the datashader metadata read to `:203-204` and the density-correction divide to `:242-247`, throughout Patterns this replaces, Default justifications, and the affected workstream Files lists.
+
+### Design clarification: cross-workstream performance interactions recorded as a standalone section
+
+**Date:** 2026-05-29
+**Trigger:** Maintainer discussion on cross-workstream regression risk. The five workstreams ship as separate MRs, but their performance characteristics are coupled in ways the per-MR harness gate cannot catch (masked benefits and two-neutral-changes-interacting-badly are compound effects, not per-MR deltas). The maintainer wants each interaction surfaced so that when a workstream becomes its own issue, the relevant cross-effect informs how it is evaluated.
+**Workstreams affected:** all (analysis is cross-cutting; no done-when content changes except the one WS3 bullet noted below).
+**Change:**
+- New top-level section "Cross-workstream performance interactions" (placed before Plan amendments) captures five interactions: (1) WS2/WS3 chunking overhead at small scale, the one genuine regression risk, mitigated by a single shared streaming-vs-single-shot threshold consumed by both plus a per-MR small-scale no-regression assertion; (2) WS2's memory win is only partly realized without WS3, a masked benefit, mitigated by measuring cumulative peak-RSS along the chain; (3) WS5 retroactively improves WS2 (var/std can stream over Dask/cuDF) and its storage extends WS1's, a positive interaction; (4) WS4 re-touches WS1's gather (rework, not regression), mitigated by not baking pandas `.iloc` assumptions into WS1 and verifying the ~0 narwhals tax after WS4; (5) WS3's non-persistence is datashader-path-only, a backend-architecture constraint (vector backends need the persisted curves). A closing note explains why the harness needs a cumulative / rolling-baseline benchmark, recorded in the parallel `wiki/wiki/plans/performance-regression-harness.md`.
+- A one-line "Interactions" cross-reference added under each affected workstream's done-when (WS1 → §3, §4; WS2 → §1, §2, §3; WS3 → §1, §2, §5; WS4 → §4; WS5 → §3).
+- WS3 gains one new done-when bullet stating the datashader-path-only non-persistence constraint (interaction §5), since the constraint is load-bearing for that workstream rather than purely advisory.
 
 ## Alternatives considered
 
