@@ -1,7 +1,7 @@
 ---
 title: Wiki Log
 type: log
-updated: 2026-04-13
+updated: 2026-05-31
 ---
 
 # Hive Plot Research Wiki — Log
@@ -75,3 +75,10 @@ Created `analyses/cora-prototype-plan.md` — concrete 5-phase implementation pl
 
 ## [2026-05-17] structure | Added plans/ directory
 Added `wiki/plans/` to host working plans alongside ADRs. Motivation: multi-day / multi-week structural plans benefit from version control, and plans + ADRs in the same repo make ADR promotion an intra-repo distillation. Seeded with two in-flight plans: `i-want-to-plan-optimized-hoare.md` and `networkx-metric-expansion-and-backend-refactor.md`. Added `plans/README.md` flagging the directory as scratch work in progress, not curated wiki content. Updated `CLAUDE.md` directory structure.
+
+## [2026-05-31] sync | hiveplotlib v0.28 NetworkX streamlining (scheduled weekly update)
+Synced the wiki to a week of hiveplotlib development (commits 2026-05-25 → 2026-05-30) building toward v0.28.0 (`0.28.0a0`), themed "streamlined NetworkX usage." Key shipped behavior: NetworkX is now a first-class input *and* output — `HivePlot(graph=...)` and `HivePlotMatrix.from_partition/from_variable_sweep(graph=...)` ingest a graph directly (with `graph_directed`/`graph_multigraph` defaulting off the graph's own type), `HivePlot.to_networkx()` / `converters.nodes_edges_to_networkx()` export back to any of the four graph classes, and a new `graph_features` package wraps 35 node + 8 edge NetworkX metrics indexed by string name, computable straight onto axes via `node_graph_metrics` / `edge_graph_metrics` at construction. The wrappers are namespaced under `graph_features/networkx/` to leave room for a future `igraph` backend (per the roadmap). Also: public `HivePlotMatrix.backend` property; deprecated `hive_plot_n_axes()` removed; several fixes (integer-partition `KeyError`, `Edges.copy`/`reset_edges` `relevant_edges` sync, `from_tags` tag validation). Three new gallery notebooks (Computing Graph Metrics, Exporting to NetworkX, Exporting to JSON) bring the example count to 49.
+
+Pages created: 1 (`concepts/graph-features.md`). Pages updated: 4 (`entities/hiveplotlib.md`, `concepts/hive-plot-matrix.md`, `index.md`, `overview.md`).
+
+Web scan for new external hive plot work (past week): nothing new surfaced. The most recent notable tool remains [[perez-2021-hype|HyPE]] (2020/2021); no 2026 hive plot papers or tools found.

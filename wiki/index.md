@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-04-13
+updated: 2026-05-31
 ---
 
 # Hive Plot Research Wiki — Index
@@ -12,7 +12,7 @@ updated: 2026-04-13
 
 ## Sources
 
-- [[hiveplotlib-python|hiveplotlib — Python Library Source]] — Comprehensive Python library for hive plots; 6 backends, 46 examples, 100% test coverage (1 source)
+- [[hiveplotlib-python|hiveplotlib — Python Library Source]] — Comprehensive Python library for hive plots; 6 backends, 49 examples, 100% test coverage; v0.28 streamlines NetworkX integration (1 source)
 - [[hiveplotlib-javascript|hiveplotlib-javascript — D3 Visualization Source]] — JavaScript/D3 companion for browser rendering of hiveplotlib JSON exports (1 source)
 - [[krzywinski-2012|Krzywinski et al. 2012]] — Foundational paper introducing hive plots (1 source)
 - [[perez-2021-hype|Perez et al. 2021 — HyPE]] — Hive Panel Explorer: interactive panel of hive plots for parameter exploration (1 source)
@@ -36,6 +36,7 @@ updated: 2026-04-13
 - [[hive-plot]] — Rational, quantitative network visualization using radial linear axes (2 sources)
 - [[node-assignment]] — How nodes are classified onto axes and positioned along them (2 sources)
 - [[edge-rendering]] — How edges are drawn as Bézier curves with layered styling (3 sources)
+- [[graph-features]] — NetworkX node/edge metric wrappers (35 node + 8 edge) for partition/sort variables; new in v0.28 (1 source)
 - [[force-directed-layout]] — The dominant layout approach that hive plots replace (1 source)
 - [[hive-plot-matrix]] — Comparative grid of hive plots for parameter exploration (2 sources)
 - [[differential-hive-plot]] — Visual diff between two hive plots for network comparison (1 source)
