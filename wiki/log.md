@@ -1,7 +1,7 @@
 ---
 title: Wiki Log
 type: log
-updated: 2026-05-31
+updated: 2026-06-06
 ---
 
 # Hive Plot Research Wiki — Log
@@ -82,3 +82,17 @@ Synced the wiki to a week of hiveplotlib development (commits 2026-05-25 → 202
 Pages created: 1 (`concepts/graph-features.md`). Pages updated: 4 (`entities/hiveplotlib.md`, `concepts/hive-plot-matrix.md`, `index.md`, `overview.md`).
 
 Web scan for new external hive plot work (past week): nothing new surfaced. The most recent notable tool remains [[perez-2021-hype|HyPE]] (2020/2021); no 2026 hive plot papers or tools found.
+
+## [2026-06-06] sync + lint | v0.28 graph-metric type handling refinements (scheduled weekly update)
+Synced the wiki to a week of hiveplotlib development (commits 2026-05-30 → 2026-05-31 plus in-flight working-tree changes on the `46-more-streamlined-networkx-usage-and-support` branch). No new public API since last week's `0.28.0a0` sweep; this week refines how the graph-metrics feature picks the internal graph's type. Two refinements worth recording:
+
+- **Directedness inferred from the requested metric set.** Building a `HivePlot` / `HivePlotMatrix` from `nodes` / `edges` with `graph_directed` unset now infers directedness from the metrics requested (`triangles` builds an undirected internal graph, `in_degree` a directed one), falling back to `True` when no requested metric cares. A self-contradictory request (one metric needs directed, another undirected) raises the up-front conflict `ValueError` rather than silently choosing. Building from a `graph` keeps that graph's own type and never re-infers. New internal helpers `_infer_graph_directed` / `_as_metric_name_list`; `_graph_directed` is now `Optional[bool]` (`None` = unpinned, re-inferred per call). `compute_graph_metrics()` still validates only and never infers.
+- **Parallel-edge-collapse warning (landing on the branch).** A new `warn_on_parallel_edge_collapse` parameter (default `True`) plus a `_warn_if_parallel_edges_collapse` seam emits a `UserWarning` when a simple-graph build merges same-direction duplicate `(from, to)` rows last-write-wins (so a `weight`-using metric sees only one row). Reciprocal `(a, b)` / `(b, a)` merges under an undirected build do not warn, since that merge is the metric's definitional behavior. Expanded `converters.nodes_edges_to_networkx` and `compute_graph_metrics` docstrings cover the weight-loss caveat.
+
+Also this week (not wiki-bearing): test-suite speedups (smaller holoviews / hive-plot test graphs, a `test-fast` no-coverage target, `--no-cov` where possible), centralized graph-type checking, and doc-revision passes.
+
+Pages updated: 2 (`concepts/graph-features.md` — added a "Graph-type handling" section; `entities/hiveplotlib.md` — graph-metrics bullet now notes directedness inference and the collapse warning).
+
+Lint pass: no contradictions or stale claims found. The earlier `graph-features.md` line "graph_directed ... otherwise it defaults to True" was the behavior superseded this week; corrected in the new "Graph-type handling" section (the unconditional `True` default now applies only when no requested metric implies directedness). No new orphan pages; `graph-features` remains well cross-linked. `index.md` graph-features entry still accurate (no new pages, no count changes).
+
+Web scan for new external hive plot work (past week): nothing new surfaced. arXiv and general search return only the known prior art ([[nollenburg-2023-computing-hive-plots|Computing Hive Plots]], the P2CP-revisited paper, [[perez-2021-hype|HyPE]]); no 2026 hive plot papers or tools found.

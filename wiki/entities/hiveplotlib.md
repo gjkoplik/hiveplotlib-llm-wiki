@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-05-31
+updated: 2026-06-06
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -43,7 +43,7 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 
 - **Build from a graph:** `HivePlot(graph=...)` and `HivePlotMatrix.from_partition(graph=...)` / `from_variable_sweep(graph=...)` accept a NetworkX graph directly instead of separate `nodes` / `edges`. `graph_directed` / `graph_multigraph` default off `graph.is_directed()` / `graph.is_multigraph()`, so directed and multigraph inputs flow through without restating the type. (`from_tags` is intentionally excluded: tags are an `Edges`-level concept.)
 - **Export to a graph:** `HivePlot.to_networkx()` (and the underlying `converters.nodes_edges_to_networkx()`) round-trip a hive plot back to any of the four NetworkX graph classes; multi-tag `Edges` get a `tag` edge attribute.
-- **Graph metrics on construction:** `node_graph_metrics` / `edge_graph_metrics` (plus `*_graph_metric_kwargs` / `*_graph_metric_rename`) compute and attach metric columns *before* partitioning, so they are immediately usable as `partition_variable` / `sorting_variables`. `compute_graph_metrics()` does the same for existing `HivePlot` / `HivePlotMatrix` instances. See [[graph-features]].
+- **Graph metrics on construction:** `node_graph_metrics` / `edge_graph_metrics` (plus `*_graph_metric_kwargs` / `*_graph_metric_rename`) compute and attach metric columns *before* partitioning, so they are immediately usable as `partition_variable` / `sorting_variables`. `compute_graph_metrics()` does the same for existing `HivePlot` / `HivePlotMatrix` instances. When you build from `nodes` / `edges` and leave `graph_directed` unset, the internal graph's directedness is inferred from the requested metrics (asking for `triangles` builds an undirected graph; `in_degree` builds a directed one), and a contradictory request raises an up-front `ValueError` instead of silently picking a side. A simple-graph build that collapses same-direction duplicate edges now warns by default (`warn_on_parallel_edge_collapse`). See [[graph-features]] for the full graph-type-handling rules.
 - Removed the long-deprecated `hive_plot_n_axes()` (folded into `HivePlot` back in v0.26).
 
 ### Key Features

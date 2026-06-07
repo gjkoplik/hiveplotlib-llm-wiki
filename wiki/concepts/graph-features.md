@@ -2,7 +2,7 @@
 title: Graph Features
 type: concept
 created: 2026-05-31
-updated: 2026-05-31
+updated: 2026-06-06
 sources: [hiveplotlib-python-repo]
 tags: [hiveplotlib, graph-metrics, networkx, node-assignment]
 ---
@@ -48,6 +48,13 @@ This pattern was repeated, error-prone, and easy to get wrong for edge-level met
 - **Stable community labels.** The community-detection and connected-component wrappers project `networkx`'s set-of-sets partition output onto a per-node integer label, with label `0` always assigned to the largest community / component (ties broken by smallest node id). This makes a "color the giant community" workflow deterministic across runs, and the resulting integer labels feed straight into a `partition_variable` (an integer-partition `KeyError` was fixed in the same release so these labels build cleanly).
 - **Localized to NetworkX, by design.** The wrappers live under a `graph_features/networkx/` subpackage rather than a flat module. This is deliberate scaffolding for future graph-feature backends: the roadmap calls for an optional `igraph` backend (which ships several fast community-detection algorithms) to slot in alongside the `networkx` one.
 - **scipy dependency.** The `[networkx]` extra now also pulls in `scipy`, which several wrappers depend on for convergence paths (e.g. `eigenvector_centrality`).
+
+## Graph-type handling
+
+The single internal `networkx` graph that backs metric computation has a type (directed vs. undirected, simple vs. multi), and getting that type wrong is the main failure mode. Two v0.28 refinements smooth this over so the common cases work without the caller restating the type.
+
+- **Directedness inferred from the metric set.** When you build a `HivePlot` / `HivePlotMatrix` from `nodes` / `edges` and leave `graph_directed` unset, the internal graph's directedness is inferred from the metrics you request. Asking for an undirected-only metric like `triangles` builds an undirected internal graph without your touching the flag; a directed-only metric like `in_degree` builds a directed one. With no metric that cares about directedness, it falls back to `True`, matching the `(from, to)` semantics of `Edges`. A request that is itself contradictory (one metric needs a directed graph, another an undirected one) is not silently resolved: the up-front conflict validator raises a `ValueError`, and the fix is to split it into two constructions, one per `graph_directed` value. Building from a `graph` input keeps that graph's own type and is never re-inferred, so a mismatched metric raises rather than quietly re-typing the graph you passed. The `compute_graph_metrics()` function itself never infers; it validates the requested set against whatever graph you hand it.
+- **Parallel-edge collapse is flagged.** Building a simple (non-multi) internal graph from edge data with same-direction duplicate `(from, to)` rows collapses those rows last-write-wins, so a metric reading an edge `weight` sees only the surviving row. The high-level classes now emit a `UserWarning` when this happens (`warn_on_parallel_edge_collapse=True` by default; set `False` to skip the check on large graphs). Reciprocal `(a, b)` / `(b, a)` rows that merge only because an undirected build treats the pair symmetrically do not warn, since that merge is the definitional meaning of the undirected metric. To keep both edges, pass `graph_multigraph=True`; this only helps for metrics that accept multigraphs, since simple-graph-only metrics like `onion_layers` reject a multigraph, so pre-aggregate the reciprocal weights into a single edge for those.
 
 ## Relevance to research
 
