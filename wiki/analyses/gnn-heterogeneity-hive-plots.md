@@ -2,7 +2,7 @@
 title: "GNN Heterogeneity Diagnosis via Hive Plot Matrices"
 type: analysis
 created: 2026-04-13
-updated: 2026-04-13
+updated: 2026-06-10
 sources: [krzywinski-2012, hiveplotlib-python-repo, nollenburg-2023, ma-2021-subgroup-fairness, kipf-2017-gcn, subramonian-2024-degree-bias, gnnfairviz-2025]
 tags: [gnn-evaluation, hive-plot-matrix, heterogeneity, research-proposal, machine-learning, edge-heterogeneity]
 ---
@@ -10,6 +10,46 @@ tags: [gnn-evaluation, hive-plot-matrix, heterogeneity, research-proposal, machi
 # GNN Heterogeneity Diagnosis via Hive Plot Matrices
 
 A research proposal for using [[hive-plot-matrix|HivePlotMatrix]] to expose classification performance heterogeneity that standard [[gnn-evaluation|GNN evaluation metrics]] mask — at both the **node level** and the **edge level**.
+
+## Findings status (2026-06, Cora prototype in `gnn-hiveplots`)
+
+A critical review of the prototype results. Honest scorecard:
+
+**Confirmed but not novel.** Homophily is the strongest simple failure predictor
+(31% / 64% / 91% accuracy across heterophilous / mixed / homophilous bins, stable
+on the test split alone and across 5 seeds). This confirms established results
+(Zhu et al. 2020, "Beyond Homophily in Graph Neural Networks"; Ma et al. 2021,
+"Is Homophily a Necessity?"; Loveland et al. 2023 on local homophily performance
+discrepancies). Any writeup must cite this literature and frame the result as
+confirmation. It is also close to mechanical for a smoothing classifier.
+
+**Refuted.** The proposed edge-level novelty ("misclassification edges cluster:
+error contagion") did not survive stronger nulls. The 2.2x `both_wrong`
+enrichment vs node independence drops to ~1.5x under a homophily-preserving
+permutation null and to ~1.16x (seed-stable 1.20 +/- 0.05) under a community x
+homophily null. The residual is errors concentrating in particular communities,
+not pairwise contagion, and a 2-layer GCN gives adjacent nodes overlapping
+receptive fields anyway, so correlated errors follow from shared causes.
+
+**The keeper.** Adjacent-to-training wrong nodes are confidently wrong (mean
+confidence 0.57, 57.5% above 0.5) while far and unreachable wrong nodes are
+uncertain (0.33-0.35). The interaction survives a homophily control (Spearman
+-0.35 after residualizing). Calibration error varies systematically over graph
+structure, which aggregate-calibration tooling does not show.
+
+**Also wrong in the original sketch below:** GCN on Cora gets ~81% test accuracy,
+not ~97.5%, and the degree punchline did not materialize (degree is the weakest
+partition: 79% vs 87%, Cramér's V 0.079, consistent with Ma et al. finding no
+clear centrality trend).
+
+**Visualization lesson.** Raw edge-density hive plots showed volume, not
+heterogeneity, and led the narrative astray once (a swapped-column reading).
+Two fixes now prototyped in `gnn-hiveplots/scripts/04_rate_hive_plots.py` and
+`05_residual_screen.py`: color edges by the per-axis-pair error *rate* on a
+scale shared across panels, and a *residual screen* that colors edges by
+observed-minus-expected failure under a logistic baseline of known predictors,
+so only unexplained structure lights up. See [[gnn-evaluation]] for where this
+should go next.
 
 ## Motivation
 
@@ -76,7 +116,7 @@ The matrix reveals **which structural decomposition exposes the most performance
 ## Concrete Example Sketch: Cora
 
 - **Dataset:** 2,708 papers, 7 classes, citation edges
-- **Model:** Train GCN → ~97.5% aggregate accuracy
+- **Model:** Train GCN → ~81% test accuracy (the original ~97.5% figure here was wrong)
 - **Hive plot construction:**
   - 3-axis hive plot: axis assignment by degree bin (low / medium / high)
   - Sort nodes along each axis by prediction confidence
@@ -132,6 +172,7 @@ No new hiveplotlib features are required — this is an *application* of existin
 - **[[nollenburg-2023-computing-hive-plots|Nöllenburg & Wallinger 2023]]** — Parameter selection is NP-complete → systematic sweep via HivePlotMatrix is the correct approach
 - **[[krzywinski-2012]]** — Hive plots reveal structural patterns that [[force-directed-layout|force-directed layouts]] miss
 - **[[kipf-2017-gcn|Kipf & Welling 2017]]** — Foundational GCN paper establishing the baseline architecture and evaluation methodology
+- **Zhu et al. 2020 ("Beyond Homophily in Graph Neural Networks", NeurIPS); Loveland et al. 2023 ("On Performance Discrepancies Across Local Homophily Levels in GNNs")** — Prior art for the homophily-predicts-accuracy result; any homophily finding here is confirmation of this literature, not a contribution
 
 ## Open Questions
 

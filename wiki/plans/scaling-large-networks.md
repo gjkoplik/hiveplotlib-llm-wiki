@@ -989,6 +989,32 @@ The per-MR harness no-regression gate catches any single workstream that regress
 **Trigger:** Scope guard recorded with the WS5 two-notebook refinement above.
 **Target:** Speculative future follow-up, **not part of this plan**. The lazy / query-engine narwhals backends (DuckDB, PySpark, Ibis) carry materialization semantics (lazy evaluation, query-engine execution) that hiveplotlib does not address in this scaling plan. Revisit only if there is a concrete demand signal and a clear story for how their materialization model maps onto hiveplotlib's per-partition geometry streaming. Recorded so the boundary of "three engine notebooks (polars, Dask, cuDF)" is explicit and the omission is a decision, not an oversight.
 
+### Added workstream (Workstream 7): performance decision table in the large-networks tutorial
+
+**Date:** 2026-06-10
+**Trigger:** Maintainer-approved docs deliverable from a docs-gaps discussion (2026-06-10). A standalone "performance guide" docs page was considered and **rejected**; the agreed shape is a decision table added to the existing tutorial `examples/hive_plots_for_large_networks.ipynb`. Deliberately deferred to the end of the scaling program because Workstreams 2, 3, and 5 are about to rewrite the performance story; numbers published earlier would go stale immediately.
+**Triage:** Added workstream (new documentation deliverable with its own done-when and editorial-critic gate), not an in-scope tweak and not a WS6 done-when: it edits a tutorial notebook in `examples/` while WS6 ships a blog notebook in `docs/source/blog/`; different artifact, different genre, different review surface. Folding it into WS6 would block the blog's closure on a separate notebook edit. Sequences last, parallel to WS6 (no dependency between 6 and 7). No new entry point, no new attribute read — no feasibility audit needed.
+**Notebook-coherence audit:** `examples/hive_plots_for_large_networks.ipynb` — genre tutorial; class `HivePlot` plus the viz backends (the page's existing subject is "how to visualize a large hive plot, matplotlib's limits, pivot to datashader"); dataset Wikipedia squirrel pages (Rozemberczki, Allen, and Sarkar 2021), single source. A backend decision table is squarely on this page's existing subject; no genre drift, no class drift, no added dataset (the table reports measured numbers as static markdown, it does not load new data). Clean; no sign-off flag.
+
+**Status:** not started
+**Depends on:** Workstreams 2, 3, and 5 (the table's thresholds describe the post-streaming, post-fused-build, post-passthrough performance reality); the performance-regression harness, specifically its WS-B measurement primitives (`time_median_of_n`, median-of-N default N=5, fixed seeds, plus the peak-RSS helper) as the source of every published number.
+**Files:**
+- `examples/hive_plots_for_large_networks.ipynb` (add a backend decision-table section; the only notebook edited — `docs/source/notebooks/` is auto-generated)
+- `runners/performance/...` (the sweep scenarios that produce the table's timings; coordinate with the harness plan rather than inventing ad-hoc timing code)
+- `CHANGELOG.rst` (entry if precedent changelogs notebook updates; match precedent)
+
+**Done when:**
+- The tutorial gains a decision table giving rough graph-size thresholds (node/edge counts) for backend choice: where matplotlib becomes slow, where the interactive backends (bokeh/plotly) choke the browser, and where datashader becomes the right answer.
+- Every timing in the table is an honest measured number produced via the harness's WS-B measurement primitives (median-of-N, fixed seeds) on named sweep scenarios — no guessed or remembered numbers.
+- The table is static markdown with its provenance stated in adjacent prose (machine spec, hiveplotlib version, measurement method); the benchmarks are **not** executed live inside the notebook, so `make test-nb` execution time is unaffected.
+- The section speaks in reader terms (which backend to reach for at what scale and why); no workstream names, plan labels, or other plan scaffolding (same bar as the WS6 reader-terms done-when).
+- Prose follows the writing-voice rules (no em-dashes, no AI filler, direct voice, length discipline) and the table's length stays proportional to the page (a table plus a short paragraph, not a new essay).
+- The notebook executes end-to-end (`make test-nb`) with no warnings (warnings-as-errors).
+- Editorial-critic post-impl review filled (notebook restructure). No api-critic review (no API surface); no viz-critic review unless implementation adds a figure alongside the table (a figure add routes back through `amend-plan` only if it changes the section's scope; otherwise just invoke viz-critic).
+- CHANGELOG entry if precedent applies.
+
+**Interactions:** a reporting artifact like WS6; no source-code or API surface, no performance coupling of its own. Distinct from WS6: the blog notebook is the cross-cutting release narrative ("what got faster"), this table is durable user guidance ("which backend at which size") living where users already look for large-network help. The two should cross-link rather than duplicate numbers.
+
 ## Alternatives considered
 
 - **Collapsing `Edges._data` from dict-of-DataFrames to single-DataFrame-with-tag-column.** Walked back during the planning conversation. The rasterization path (Workstream 2) iterates per-tag anyway; the collapse would be a breaking change to the `Edges._data` shape and the public `Edges.data` property without proportional benefit. Not pursued.
