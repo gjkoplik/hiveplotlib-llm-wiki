@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-06-06
+updated: 2026-06-11
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -44,6 +44,7 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 - **Build from a graph:** `HivePlot(graph=...)` and `HivePlotMatrix.from_partition(graph=...)` / `from_variable_sweep(graph=...)` accept a NetworkX graph directly instead of separate `nodes` / `edges`. `graph_directed` / `graph_multigraph` default off `graph.is_directed()` / `graph.is_multigraph()`, so directed and multigraph inputs flow through without restating the type. (`from_tags` is intentionally excluded: tags are an `Edges`-level concept.)
 - **Export to a graph:** `HivePlot.to_networkx()` (and the underlying `converters.nodes_edges_to_networkx()`) round-trip a hive plot back to any of the four NetworkX graph classes; multi-tag `Edges` get a `tag` edge attribute.
 - **Graph metrics on construction:** `node_graph_metrics` / `edge_graph_metrics` (plus `*_graph_metric_kwargs` / `*_graph_metric_rename`) compute and attach metric columns *before* partitioning, so they are immediately usable as `partition_variable` / `sorting_variables`. `compute_graph_metrics()` does the same for existing `HivePlot` / `HivePlotMatrix` instances. When you build from `nodes` / `edges` and leave `graph_directed` unset, the internal graph's directedness is inferred from the requested metrics (asking for `triangles` builds an undirected graph; `in_degree` builds a directed one), and a contradictory request raises an up-front `ValueError` instead of silently picking a side. A simple-graph build that collapses same-direction duplicate edges now warns by default (`warn_on_parallel_edge_collapse`). See [[graph-features]] for the full graph-type-handling rules.
+- **Backend dispatch for graph metrics:** a `graph_metric_backend` parameter on `compute_graph_metrics()`, `HivePlot`, and all five `HivePlotMatrix` surfaces (including the `from_*` classmethods) routes metric computation through NetworkX's backend dispatch system (nx-parallel tested in CI; nx-cugraph known-good but GPU-only). Unknown or uninstalled backend names raise `InvalidGraphMetricBackendError` up front; metrics a backend does not implement fall back to default NetworkX with an INFO log line (the codebase's first use of stdlib logging). A per-metric reserved `"backend"` key in the metric-kwargs dicts overrides the global value, with explicit `None` as the per-metric opt-out; precedence runs per-metric > per-call > stored construction value, mirroring `graph_directed`. This is orthogonal to the future igraph wrapper-library axis (see [[graph-features]] for the three distinct "backend" senses). New gallery notebook: Graph Metric Backends.
 - Removed the long-deprecated `hive_plot_n_axes()` (folded into `HivePlot` back in v0.26).
 
 ### Key Features
@@ -51,7 +52,7 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 - [[bezier-curves|Bézier curve]] generation with numba acceleration
 - [[graph-features|Graph-feature wrappers]] — 35 node + 8 edge NetworkX metrics, indexed by string name, attachable to a `NodeCollection` / `Edges`
 - NetworkX converters both ways: `networkx_to_nodes_edges()` in, `nodes_edges_to_networkx()` / `HivePlot.to_networkx()` out
-- 49 example Jupyter notebooks (three new v0.28 gallery pages: Computing Graph Metrics, Exporting to NetworkX, Exporting to JSON)
+- 50 example Jupyter notebooks (four new v0.28 gallery pages: Computing Graph Metrics, Graph Metric Backends, Exporting to NetworkX, Exporting to JSON)
 - 100% test coverage
 - Built-in datasets (toy plots, international trade data)
 

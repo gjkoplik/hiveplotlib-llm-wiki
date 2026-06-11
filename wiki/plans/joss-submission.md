@@ -30,7 +30,7 @@ No ADRs exist yet; no prior publication/citation thinking in the wiki. Net-new d
 - `wiki/wiki/sources/nollenburg-2023-computing-hive-plots.md` — NP-completeness result validates the exploration-over-optimization design philosophy; Software design section.
 - `wiki/wiki/overview.md` — best single-page synthesis.
 - Applications concept pages (bioinformatics, cybersecurity, software-engineering) — Research impact statement.
-- `wiki/wiki/plans/same-stats-different-graphs.md` — Datasaurus-style demo, in planning, gated on Gary's prototype review (its G1); hero-figure candidate. Prior art: Chen et al. GD 2018, arXiv:1808.09913.
+- `wiki/wiki/plans/same-stats-different-graphs.md` — Datasaurus-style demo; **the work behind this plan's G2 and the expected hero figure — it must complete first** (its own sequencing: story standardization in hiveplotlib-datasaurus, then generator + notebook in hiveplotlib on a fresh branch post-46-merge). Prior art: Chen et al. GD 2018, arXiv:1808.09913.
 
 ## JOSS requirements (verified June 2026)
 
@@ -74,7 +74,7 @@ No notebook change.
 ## External gates
 
 - **G1: v0.28 released.** Currently `0.28.0a0` (NetworkX first-class I/O + graph_features metrics). The paper describes and the Zenodo archive snapshots the released library; submission waits for the release tag. Blocks Workstream D (and final figure/code claims in C).
-- **G2: same-stats-different-graphs demo resolved.** That plan is gated on Gary's prototype review; its outcome supplies the expected hero figure. Blocks figure selection in Workstream C. If that plan dies, fall back to an alternative figure (route through amend-plan).
+- **G2: same-stats-different-graphs demo resolved.** Gated on `wiki/wiki/plans/same-stats-different-graphs.md` completing (per its Amendment 4: WS-0 story standardization in hiveplotlib-datasaurus, then generator + tutorial notebook in hiveplotlib); that work must finish before this gate clears, and its outcome supplies the expected hero figure. Blocks figure selection in Workstream C. If that plan dies, fall back to an alternative figure (route through amend-plan).
 - **G3: author metadata from Gary.** Legal name, affiliation(s), ORCID, funding acknowledgments. Nothing in repo or wiki records these. Blocks paper front matter in Workstream C; collect via Workstream B's checklist.
 
 ## Workstreams

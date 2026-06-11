@@ -22,7 +22,7 @@ Two memory costs are in play, and they need separate fixes:
 
 ### Sequencing and scope guards
 
-Every workstream here is its own MR with its own validation, and **every workstream is gated by the separate performance-regression harness** (`wiki/wiki/plans/performance-regression-harness.md`, sequenced first). Each workstream's done-when includes harness-based speed + no-regression validation, plus the var/std-equivalence gate wherever rasterization changes.
+Every workstream here is its own MR with its own validation, and **every workstream is gated by the separate performance-regression harness** (`wiki/wiki/plans/performance-regression-harness.md`, sequenced first). Each workstream's done-when includes harness-based speed + no-regression validation, plus the var/std-equivalence gate wherever rasterization changes. Gating semantics are ratio-based per the harness plan's 2026-06-11 amendments (pytest owns the equivalence gate and relative same-run CI ratio assertions; ASV owns rolling baseline / history / blog-figure data).
 
 Out of this super-plan entirely: the Bézier "Bernstein hoist" (loop-invariant weight table; a small bandwidth-bound win) ships as a standalone reviewed PR, and numba autotuning is deferred (already mined). Do not add either here.
 
@@ -66,7 +66,7 @@ The replace-and-sweep audit cuts across all five workstreams. Counts come from a
 
 ### Workstream 2 — reduction-aware chunked rasterization (datashader backend)
 
-- **List-of-arrays accumulation followed by `np.concatenate` + `pd.DataFrame` construction**, found at `src/hiveplotlib/viz/datashader.py:181-234` (the transient concat copy). Replace with per-`(g1, g2, tag)`-chunk `cvs.line()` calls and a **reduction-aware** aggregation (additive only for count/sum/any; mean accumulates sum + count and divides at end; var/std and exotic reductions do not sum per-chunk rasters, see Workstream 2 done-when). Drop the chunk's curves array after each `cvs.line()` call.
+- **List-of-arrays accumulation followed by `np.concatenate` + `pd.DataFrame` construction**, found at `src/hiveplotlib/viz/datashader.py:181-234` (the transient concat copy). Replace with per-`(g1, g2, tag)`-chunk `cvs.line()` calls and a **reduction-aware** aggregation (additive for count/sum; elementwise OR — or max — for `any`, since summing boolean `any` rasters produces counts; mean accumulates sum + count and divides at end; max/min are cheaply combinable via elementwise max/min, supported in the streamed path or left in the fallback bucket per a stated implementer decision; var/std and exotic reductions do not sum per-chunk rasters, see Workstream 2 done-when). Drop the chunk's curves array after each `cvs.line()` call.
 - **Existing density-correction division** at `src/hiveplotlib/viz/datashader.py:242-247` already implements the divide-at-end pattern that the mean path reuses (accumulate sum + count, divide once). Reduction-aware streaming generalizes this existing logic rather than inventing it.
 - **`pd.concat([hive_plot.axes[axis_id].node_placements for axis_id in hive_plot.axes])`** at `src/hiveplotlib/viz/datashader.py:386-388`. Replace with per-axis `cvs.points()` aggregation; concatenate rasters rather than DataFrames (node points are count-based, so the additive path applies directly).
 - **Same-shape accumulation patterns in `datashade_hive_plot_mpl`** at `src/hiveplotlib/viz/datashader.py:445-631` inherit the streaming refactor through its two helpers (`datashade_edges_mpl`, `datashade_nodes_mpl`); the wrapper itself does not duplicate the accumulation logic.
@@ -126,7 +126,7 @@ Workstream-by-workstream new defaults.
 Decision: the datashader entry points gain a parameter (name audited below as `stream_chunk_threshold`) defaulting to `None`, meaning "auto-decide by edge-set size." The **single-shot path stays the default for the common case** (plenty of datashader use is far below any memory wall), and the streamed path is the opt-in / escape hatch for scale.
 
 - Default `None` → auto threshold by edge count: below the auto threshold, single-shot; at or above it, stream. The user can force either way (a numeric threshold, or an explicit force-on / force-off; exact type resolved in the naming audit below at implementation).
-- **var/std and other non-additive reductions are always single-shot-or-delegate regardless of the threshold**, because per-chunk raster summation is mathematically wrong for moment-based reductions (the existing gallery `examples/datashading_statistical_summaries_of_metadata.ipynb` uses `ds.var` twice and `ds.mean` once; naive per-chunk summation would silently regress those figures). The streamed path applies only to reductions whose algebra is additive or sum-plus-count (count, sum, any, mean).
+- **var/std and other non-additive reductions are always single-shot-or-delegate regardless of the threshold**, because per-chunk raster summation is mathematically wrong for moment-based reductions (the existing gallery `examples/datashading_statistical_summaries_of_metadata.ipynb` uses `ds.var` twice and `ds.mean` once; naive per-chunk summation would silently regress those figures). The streamed path applies only to reductions with a cheap, exact combine: additive (count, sum), elementwise OR (any), sum-plus-count (mean), and optionally elementwise max/min (max, min) per the implementer's stated classification.
 - The single-shot path doubles as the equivalence / regression baseline: every streamed-path result must match its single-shot counterpart within tolerance (exact for count/sum/any; division-tolerance for mean).
 
 Rationale for default-single-shot: the memory win only matters above a memory wall most users never hit, and the single-shot path is the proven, already-shipped behavior. Defaulting to stream would slow the median small-graph case and risk subtle aggregation drift on every plot for a benefit only large-graph users see. Loud opt-in (or size-triggered auto) keeps the common case untouched and the scale case reachable.
@@ -493,7 +493,9 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 
 **Done when:**
 - The three datashader entry points accept `stream_chunk_threshold: Optional[int] = None`. Default `None` auto-decides by edge count; an explicit value forces the switch point. The single-shot path remains the default for the common (small) case.
-- Reduction-aware streaming: count / sum / any aggregate additively per `(g1, g2, tag)` chunk; mean accumulates per-chunk sum + count and divides once at the end (reusing the existing density-correction divide pattern at `datashader.py:242-247`); the chunk's curves array is dropped before the next chunk.
+- Reduction-aware streaming with an explicit per-reduction combine algebra over `(g1, g2, tag)` chunks: count/sum combine additively; **`any` combines via elementwise OR (or max), never addition** (summing boolean `any` rasters produces counts); mean accumulates per-chunk sum + count and divides once at the end (reusing the existing density-correction divide pattern at `datashader.py:242-247`); the chunk's curves array is dropped before the next chunk.
+- max/min are cheaply combinable via elementwise max/min. The implementer either supports them in the streamed path or leaves them in the single-shot-or-delegate fallback bucket; either way the classification is a stated decision recorded in the Implementation log, not an accident of the "exotic" catch-all.
+- Order of operations on the streamed path: combine **raw per-chunk aggregates** first, then apply `tf.spread` and the density-correction divide exactly once at the end, matching the single-shot code at `datashader.py:236-247` (which spreads and divides after aggregation). Per-chunk spreading before combination would drift from the single-shot baseline and show up as near-tolerance equivalence failures.
 - **var/std and any other non-additive / exotic reduction never sum per-chunk rasters.** They either (i) delegate partial-aggregate combination to datashader by feeding it a Dask/cuDF frame (verify the pinned datashader version combines moment-based partial aggregates across partitions; flag the version dependency) or (ii) fall back to the single-shot path. `stream_chunk_threshold` is ignored for these reductions.
 - Same streaming shape for `datashade_nodes_mpl` over axes (node points are count-based; additive applies).
 - **var/std-equivalence gate:** the streamed-or-delegated path produces output matching the single-shot baseline within tolerance for every supported reduction, verified explicitly against `examples/datashading_statistical_summaries_of_metadata.ipynb`'s `ds.var` (×2) and `ds.mean` (×1) usage. Exact match for count/sum/any; division-tolerance for mean; var/std verified against the single-shot or delegated result.
@@ -553,6 +555,7 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 
 **Done when:**
 - Narwhals is declared as a **core dependency** in `pyproject.toml`, pinned `>=1.x,<2` (specific minor within that range chosen at implementation time). A brief design note is added to `CLAUDE.md` explaining the abstraction layer (so future maintainers don't relitigate the core-dep decision).
+- Pin-time checklist, run at WS4 start: (a) the pinned narwhals version still publishes a `py3-none-any` wheel and has not grown a default compiled fast-path (the grill Wave 1 load-bearing fact); (b) `make ty` passes against narwhals's typing at the pinned version, including the `IntoDataFrame` annotation on the input boundary. A type-check failure in a core dep blocks the whole boundary refactor, so both checks run before any code moves.
 - `NodeCollection(data=polars_df, ...)` and `Edges(data=polars_df, ...)` work end-to-end; `.data` round-trips to polars.
 - `NodeCollection(data=pandas_df, ...)` and `Edges(data=pandas_df, ...)` continue to work identically to today; no regression.
 - Docstrings on `NodeCollection.data` and `Edges.data` properties explicitly document the round-trip contract: the property returns the frame in the same library the user passed in, the one named exception is numpy-ndarray input to `Edges` (which becomes pandas because no original frame existed), and the library does not coerce frame types. Wording aligns across both classes.
@@ -579,7 +582,9 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - `src/hiveplotlib/hiveplot.py:797` (`BaseHivePlot.__store_edge_ids`; supply the Dask non-materializing equivalent of the Workstream 1 integer-index storage, so Dask input does not materialize a per-edge array into RAM)
 - `src/hiveplotlib/viz/datashader.py` (verify the per-chunk DataFrame fed to `cvs.line()` can be Dask- or cuDF-typed when the input was Dask/cuDF; verify the datashader CUDA path for cuDF)
 - `tests/integration/dask_passthrough_test.py` (new; in-memory partitioned synthetic Dask DataFrame; small enough to live in CI; gated by the datashader extra plus Dask)
-- `tests/integration/cudf_smoke_test.py` (new; cuDF/GPU smoke test verifying datashader + narwhals version support; gated by a cuDF marker and skipped where no GPU is available)
+- `tests/integration/cudf_smoke_test.py` (new; cuDF/GPU smoke test verifying datashader + narwhals version support; gated by the `@pytest.mark.cudf` marker and skipped where no GPU is available)
+- `Makefile` (new `test-gpu` target running the GPU-gated tests, e.g. `pytest -m cudf`)
+- `CONTRIBUTING.md` (local GPU verification cadence for the never-in-CI cuDF path; migrates to a releases-specific doc when one exists)
 - `CHANGELOG.rst` (entry)
 - `docs/source/...` (one new example or notebook section demonstrating Dask passthrough, including partition-size guidance for the per-partition Bezier memory ceiling and the sort-cost / shuffle disposition for `place_nodes_on_axis`; plus a cuDF/GPU note; could also live in `examples/scaling_with_dask.ipynb` as a gallery-style notebook)
 
@@ -589,10 +594,11 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - Passing `use_dask=True` with a non-Dask frame raises `TypeError` ("mismatched declaration" path); passing `use_dask=False` with a Dask frame raises `TypeError` (explicit refusal path); passing `use_dask=False` (or `None`) with a non-Dask frame is a no-op. Tests cover each branch.
 - `use_dask=True` with Dask installed: the constructor succeeds, and a small Dask DataFrame end-to-end test (in-memory, ~2 partitions, synthetic 10k edges) produces an equivalent rasterization to the pandas path.
 - `use_dask=True` with Dask not installed raises `ImportError` naming the missing extra (`pip install hiveplotlib[dask]` or whatever the install marker is named).
-- CI shape: single `pytest` invocation. A new `@pytest.mark.dask` marker is added following the existing optional-backend marker pattern (`bokeh`, `datashader`, `holoviews`, `plotly`, `networkx`, `polars`). Dask-gated tests carry the marker so they only run under `pytest -m dask` (or the umbrella `make test`). Marker isolation works correctly: a Dask-marked case does not run under `pytest -m datashader`.
+- CI shape: single `pytest` invocation. A new `@pytest.mark.dask` marker is added following the existing optional-backend marker pattern (`bokeh`, `datashader`, `holoviews`, `plotly`, `networkx`, `polars`). Dask-gated tests carry the marker so they only run under `pytest -m dask` (or the umbrella `make test`). Marker isolation works correctly: a Dask-marked case does not run under `pytest -m datashader`. A `@pytest.mark.cudf` marker is registered the same way for the GPU-gated tests; it is consumed by the `make test-gpu` target below, never by CI.
 - Performance runner gains a small Dask-input scenario (or it is left as a worth-discussing follow-up by the api-critic).
 - The `relevant_edges` storage at `BaseHivePlot.__store_edge_ids` (`src/hiveplotlib/hiveplot.py:797`) supplies the Dask non-materializing equivalent of the Workstream 1 integer-index storage: when input is Dask, the per-`(axis_pair, tag)` membership is **not** materialized as a per-edge array into RAM (which would silently defeat the out-of-core story for a 1B-edge graph). Implementation chooses between (a) storing the membership as a Dask Series, (b) adding a per-tag boolean column to the edge frame (kept as Dask), or (c) an equivalent structure that avoids materializing a per-edge array into RAM. The pandas/polars case keeps the Workstream 1 in-RAM integer-index storage. The choice between the three structural options is an implementation decision; the requirement is the no-materialization guarantee for Dask input. (This is the second half of the single storage decision designed in Workstream 1; do not redesign the in-RAM structure here.)
 - cuDF/GPU passthrough: a cuDF frame flows through narwhals dispatch and the datashader CUDA path (`cvs.line` over cuDF → cupy aggregates) end-to-end with no `use_cudf` parameter. A smoke test (`tests/integration/cudf_smoke_test.py`, GPU-gated, skipped where no GPU) verifies datashader + narwhals version support for the cuDF path against the pinned versions. The Dask/cuDF interplay for the var/std delegation path (Workstream 2 option (i)) is verified here against the pinned datashader version.
+- Local verification cadence for the never-in-CI cuDF path: the GPU gate means CI can never run these tests (permanent silent-rot risk, by the same logic that justified core narwhals). A `make test-gpu` Makefile target runs the GPU-gated tests (e.g. `pytest -m cudf`), and `CONTRIBUTING.md` documents the cadence: run `make test-gpu` locally before any release that bumps datashader or narwhals, or that touches the input boundary or the datashader backend. No releases-specific doc exists yet (verified 2026-06-11); when one does, this guidance migrates there and CONTRIBUTING.md is the home until then.
 - The Dask sort cost is addressed in the Dask example notebook (or equivalent doc). `HivePlot.place_nodes_on_axis` sorts nodes by a variable, which in Dask requires a shuffle (the most expensive Dask operation). Implementer chooses between (a) accept the cost (the Dask sort happens, document expected wall-time impact) or (b) document a "sort upstream before passing to hiveplotlib" pattern in the notebook. Either disposition is acceptable; the requirement is that the question is answered visibly to users, not left as a silent footgun.
 - The Dask example notebook (or the Dask passthrough docs) documents partition-size guidance. The Bezier kernel materializes one Dask partition's curves into numpy at a time; the per-partition memory ceiling is roughly `largest_partition_size * num_steps * 4 bytes` (float32). A user with few-but-huge partitions can still exceed RAM, defeating the streaming win. Documentation names a concrete repartition guideline (e.g., "for very large edge sets, repartition to ensure no partition exceeds ~10M edges before passing to hiveplotlib"; the exact recommended ceiling is implementer's call based on benchmarks).
 - Documentation example or notebook demonstrating Dask usage with the explicit `use_dask=True` opt-in, plus a cuDF/GPU note.
@@ -1005,6 +1011,7 @@ The per-MR harness no-regression gate catches any single workstream that regress
 
 **Done when:**
 - The tutorial gains a decision table giving rough graph-size thresholds (node/edge counts) for backend choice: where matplotlib becomes slow, where the interactive backends (bokeh/plotly) choke the browser, and where datashader becomes the right answer.
+- The table includes a `num_steps` row: reducing the Bézier interpolation points per curve is a first-order lever at large scale (curve memory and build time scale linearly in `num_steps`, and at datashader scale fewer points are visually indistinguishable after rasterization). Documented user guidance only — `num_steps` reduction is not equivalence-preserving (it changes output geometry), so it stays out of the Workstream 1-3 streaming paths.
 - Every timing in the table is an honest measured number produced via the harness's WS-B measurement primitives (median-of-N, fixed seeds) on named sweep scenarios — no guessed or remembered numbers.
 - The table is static markdown with its provenance stated in adjacent prose (machine spec, hiveplotlib version, measurement method); the benchmarks are **not** executed live inside the notebook, so `make test-nb` execution time is unaffected.
 - The section speaks in reader terms (which backend to reach for at what scale and why); no workstream names, plan labels, or other plan scaffolding (same bar as the WS6 reader-terms done-when).
@@ -1014,6 +1021,48 @@ The per-MR harness no-regression gate catches any single workstream that regress
 - CHANGELOG entry if precedent applies.
 
 **Interactions:** a reporting artifact like WS6; no source-code or API surface, no performance coupling of its own. Distinct from WS6: the blog notebook is the cross-cutting release narrative ("what got faster"), this table is durable user guidance ("which backend at which size") living where users already look for large-network help. The two should cross-link rather than duplicate numbers.
+
+### In-scope correction (Workstream 2): `any` combines by elementwise OR, max/min classified explicitly, spread/divide once at end
+
+**Date:** 2026-06-11
+**Trigger:** Maintainer review session 2026-06-11 (must-fix). The plan said "count / sum / any aggregate additively per chunk" in WS2's done-when and in Patterns this replaces. `ds.any` is **not** additive: summing boolean `any` rasters produces counts.
+**Workstream affected:** Workstream 2, with cascading edits to Patterns this replaces (Workstream 2) and Default justifications (streaming-threshold subsection). No new entry point or attribute read; no feasibility audit needed.
+**Change:**
+- Correct combine for `any` is elementwise OR (or max). WS2 done-when, Patterns this replaces, and the Default justifications algebra list all corrected. The var/std-equivalence gate wording ("exact match for count/sum/any") stands: OR-combine remains exact.
+- max/min classified explicitly: cheaply combinable via elementwise max/min. The implementer may support them in the streamed path or leave them in the single-shot-or-delegate fallback bucket, but the classification must be a stated decision recorded in the Implementation log, not an accident of the "exotic" catch-all. New WS2 done-when bullet.
+- Order of operations pinned: the streamed path combines **raw per-chunk aggregates**, then applies `tf.spread` and the density-correction divide exactly once at the end (the current single-shot code at `src/hiveplotlib/viz/datashader.py:236-247` spreads and divides after aggregation). Per-chunk spreading before combination would drift from the single-shot baseline and show up as near-tolerance equivalence failures. New WS2 done-when bullet.
+- The 2026-05-29 "reduction-aware aggregation" amendment and grill Wave 2 text repeating "count/sum/any stream additively" stand as historical record (append-only); this entry supersedes them on the `any` algebra.
+
+### In-scope tweak (Workstream 5): `make test-gpu` local verification cadence for the GPU-gated cuDF path
+
+**Date:** 2026-06-11
+**Trigger:** Maintainer review session 2026-06-11. The cuDF path is GPU-gated and never runs in CI — a permanent silent-rot risk, by the same logic the plan uses to justify core narwhals. No new entry point or attribute read; no feasibility audit needed.
+**Workstream affected:** Workstream 5 (Files and done-when).
+**Change:**
+- New `make test-gpu` Makefile target running the GPU-gated tests (e.g. `pytest -m cudf`). The implied `@pytest.mark.cudf` marker is registered alongside the existing optional-backend markers and named in the WS5 CI-shape bullet next to the `dask` marker.
+- `CONTRIBUTING.md` documents the cadence: run `make test-gpu` locally before any release that bumps datashader or narwhals, or that touches the input boundary or the datashader backend. Verified 2026-06-11: no releases-specific doc exists yet; the maintainer plans one eventually, at which point this guidance migrates there. CONTRIBUTING.md is the home for now.
+- `Makefile` and `CONTRIBUTING.md` added to WS5 Files; cadence bullet added to WS5 done-when.
+
+### In-scope tweak (Workstream 7): backend decision table gains a `num_steps` row
+
+**Date:** 2026-06-11
+**Trigger:** Maintainer review session 2026-06-11. `num_steps` (Bézier interpolation points per curve) is a first-order lever at large scale that the decision table should surface. No new entry point or attribute read; no feasibility audit needed.
+**Workstream affected:** Workstream 7 (done-when).
+**Change:** New done-when bullet: the table includes a `num_steps` row stating that curve memory and build time scale linearly in `num_steps`, and at datashader scale fewer points are visually indistinguishable after rasterization. It is not equivalence-preserving (it changes output geometry), so it stays out of the Workstream 1-3 streaming paths and lands as documented user guidance only.
+
+### In-scope tweak (Workstream 4): pin-time checklist gains a `make ty` check
+
+**Date:** 2026-06-11
+**Trigger:** Maintainer review session 2026-06-11. A type-check failure in a core dep blocks the whole boundary refactor, so it must be caught at pin time, not mid-refactor. No new entry point or attribute read; no feasibility audit needed.
+**Workstream affected:** Workstream 4 (done-when).
+**Change:** The WS4 pin-time checklist (previously living only in the grill Wave 1 amendment prose as the `py3-none-any` wheel check) is promoted to an explicit WS4 done-when bullet run at WS4 start, with two parts: (a) the existing check that the pinned narwhals version still publishes a `py3-none-any` wheel with no default compiled fast-path, and (b) new: `make ty` passes against narwhals's typing at the pinned version, including the `IntoDataFrame` annotation on the input boundary.
+
+### Bookkeeping: harness gating semantics pointer (cross-plan, 2026-06-11)
+
+**Date:** 2026-06-11
+**Trigger:** The sibling plan `wiki/wiki/plans/performance-regression-harness.md` was amended in parallel (2026-06-11) to an ASV hybrid: pytest keeps the equivalence gate and relative same-run CI ratio assertions; ASV owns rolling baseline / history / blog-figure data.
+**Workstreams affected:** none substantively; all harness-gated validation bullets inherit the new semantics from the harness plan.
+**Change:** One-line pointer added to "Sequencing and scope guards" noting the ratio-based gating semantics. The harness plan file itself was not edited from here.
 
 ## Alternatives considered
 
