@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-05-31
+updated: 2026-06-13
 ---
 
 # Hive Plot Research Wiki — Index
@@ -12,7 +12,7 @@ updated: 2026-05-31
 
 ## Sources
 
-- [[hiveplotlib-python|hiveplotlib — Python Library Source]] — Comprehensive Python library for hive plots; 6 backends, 49 examples, 100% test coverage; v0.28 streamlines NetworkX integration (1 source)
+- [[hiveplotlib-python|hiveplotlib — Python Library Source]] — Comprehensive Python library for hive plots; 6 backends, 50 examples, 100% test coverage; v0.28 streamlines NetworkX integration (1 source)
 - [[hiveplotlib-javascript|hiveplotlib-javascript — D3 Visualization Source]] — JavaScript/D3 companion for browser rendering of hiveplotlib JSON exports (1 source)
 - [[krzywinski-2012|Krzywinski et al. 2012]] — Foundational paper introducing hive plots (1 source)
 - [[perez-2021-hype|Perez et al. 2021 — HyPE]] — Hive Panel Explorer: interactive panel of hive plots for parameter exploration (1 source)
@@ -54,3 +54,6 @@ updated: 2026-05-31
 - [[karate-club-walkthrough]] — Step-by-step hiveplotlib walkthrough using Zachary's Karate Club (1 source)
 - [[gnn-heterogeneity-hive-plots]] — Research proposal: HivePlotMatrix for GNN classification diagnostics, node- and edge-level (7 sources)
 - [[cora-prototype-plan]] — Implementation plan for Cora GNN evaluation prototype (3 sources)
+- [[nxviz-comparison]] — Capability comparison: nxviz (revived June 2026) vs hiveplotlib, for JOSS State of the field (1 source — web research)
+- [[hiveplotlib-research-impact]] — Citations, downstream uses, and PyPI download stats for the JOSS Research impact statement; thin-but-real (1 source — web research)
+- [[joss-ai-disclosure-precedents]] — Accepted-JOSS-paper AI-disclosure examples by posture, to calibrate the paper's mandatory disclosure (1 source — web research)

@@ -2,7 +2,7 @@
 title: Overview
 type: overview
 created: 2026-04-06
-updated: 2026-05-31
+updated: 2026-06-13
 sources: [krzywinski-2012, hiveplotlib-python-repo, hiveplotlib-javascript-repo, perez-2021-hype, bostock-2012-d3-hive-plots, nollenburg-2023, krzywinski-2017-differential, ma-2021-subgroup-fairness, kipf-2017-gcn, subramonian-2024-degree-bias, gnnfairviz-2025]
 tags: [hive-plot, hiveplotlib, network-visualization]
 ---
@@ -23,7 +23,7 @@ The method has been adopted across multiple domains — most strongly in [[appli
 
 ## The Software
 
-**[[hiveplotlib]]** is the main hub of research and development. It is a comprehensive Python library (by the wiki maintainer) supporting six visualization backends, with 49 example notebooks, 100% test coverage, and features including:
+**[[hiveplotlib]]** is the main hub of research and development. It is a comprehensive Python library (by the wiki maintainer) supporting six visualization backends, with 50 example notebooks, 100% test coverage, and features including:
 - High-level `HivePlot` API and low-level `BaseHivePlot` for full control
 - [[hive-plot-matrix|HivePlotMatrix]] for comparative visualization (released in v0.27)
 - [[p2cp|Polar Parallel Coordinates]] for tabular data

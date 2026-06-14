@@ -2,7 +2,7 @@
 title: Hive Plot
 type: concept
 created: 2026-04-06
-updated: 2026-04-06
+updated: 2026-06-12
 sources: [krzywinski-2012, hiveplotlib-python-repo]
 tags: [hive-plot, network-visualization, core-concept]
 ---
@@ -47,14 +47,15 @@ When nodes on the **same axis** need to connect to each other, that axis is dupl
 
 ## Implementations
 
-| Library | Language | Notes |
-|---------|----------|-------|
-| **[[hiveplotlib]]** | Python | Most comprehensive, 6 backends |
-| **[[hiveplotlib-javascript]]** | JavaScript/D3 | Browser rendering of hiveplotlib exports |
-| HiveR | R | 2D/3D hive plots |
-| jhive | Java | Reference implementation by Krzywinski |
-| D3 hive plot | JavaScript | By Mike Bostock |
-| pyveplot | Python | Earlier implementation |
+| Library | Language | Notes | Maintenance status |
+|---------|----------|-------|--------------------|
+| **[[hiveplotlib]]** | Python | Most comprehensive, 6 backends | Active |
+| **[[hiveplotlib-javascript]]** | JavaScript/D3 | Browser rendering of hiveplotlib exports | Active |
+| nxviz | Python | Functional API does hive plots (3-group cap) among other layouts; see [[nxviz-comparison]] | Revived June 2026 (dormant 2018–2025) |
+| HiveR | R | 2D/3D hive plots | Dormant / unmaintained |
+| jhive | Java | Reference implementation by Krzywinski | Dormant / unmaintained |
+| D3 hive plot | JavaScript | By [[Mike Bostock]] | Dormant / unmaintained |
+| pyveplot | Python | Earlier implementation | Dormant / unmaintained |
 
 ## Application Domains
 
@@ -71,4 +72,5 @@ When nodes on the **same axis** need to connect to each other, that axis is dupl
 - [[differential-hive-plot]] — Comparing two networks via visual diff
 - [[force-directed-layout]] — What hive plots replace
 - [[hiveplotlib]] — Primary implementation
+- [[nxviz-comparison]] — Capability comparison with nxviz, the only living alternative
 - [[nollenburg-2023-computing-hive-plots]] — Formal algorithmic foundation

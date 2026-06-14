@@ -1,7 +1,7 @@
 ---
 title: Wiki Log
 type: log
-updated: 2026-06-06
+updated: 2026-06-12
 ---
 
 # Hive Plot Research Wiki — Log
@@ -101,3 +101,17 @@ Web scan for new external hive plot work (past week): nothing new surfaced. arXi
 The graph-metric-backend-dispatch plan fully shipped into v0.28.0 (all five workstreams; final QA: 1317 tests, 100% coverage, docs build clean). A `graph_metric_backend` parameter on `compute_graph_metrics()` / `HivePlot` / all five `HivePlotMatrix` surfaces routes metric computation through networkx's backend dispatch system (nx-parallel tested in CI; nx-cugraph known-good, GPU-only). Semantics: strict up-front validation against the runtime registry (`InvalidGraphMetricBackendError`; degree-family per-metric entries rejected with an actionable message), lenient `NotImplementedError` fallback with INFO logging (the codebase's first stdlib logging), per-metric reserved `"backend"` key with explicit-`None` opt-out, and three-level precedence (per-metric > per-call > stored construction intent, mirroring `graph_directed`). New gallery notebook: Graph Metric Backends. Feeds the combined v0.28 close-out ADR; no standalone record.
 
 Pages updated: 2 (`entities/hiveplotlib.md` — v0.28 NetworkX-integration bullet + notebook count; `concepts/graph-features.md` — new "Backend dispatch (v0.28)" section including the three-senses-of-backend naming-audit triangle). Plan stays in `plans/` for now (two sibling v0.28 plans still in flight; archiving deferred to the combined ADR promotion).
+
+## [2026-06-12] analysis | JOSS submission — Workstream B evidence filed
+Filed Workstream B evidence for the JOSS submission plan (`plans/joss-submission.md`) from completed web research (all accessed 2026-06-12). Created three analysis pages feeding the paper: `analyses/nxviz-comparison.md` (State of the field — nxviz revived June 2026 via v0.8.0 plotly backend + v0.9.0 chord diagrams; deprecated OO `HivePlot`, functional 3-group-capped API; fair per-dimension deltas vs hiveplotlib, including the now-stale "matplotlib-only" claim — nxviz has 2 backends as of June 2026); `analyses/hiveplotlib-research-impact.md` (Research impact — thin-but-real: two 2025 bio papers flagged UNVERIFIED/paywalled for maintainer confirmation, IEEE/TDS mentions, PMC7887807 recorded as a false positive, PyPI ~1,743/month, open gaps noted); `analyses/joss-ai-disclosure-precedents.md` (mandatory AI-disclosure wording — policy verbatim, accepted-paper examples grouped minimal/scoped/detailed, recommendation toward the detailed end with final wording gated on Gary). Updated `concepts/hive-plot.md` (competing-implementations table gains a maintenance-status column; nxviz row added). Author-metadata checklist (G3) presented to Gary in the run report, not filed (needs his answers). Pages created: 3. Pages updated: 3 (`concepts/hive-plot.md`, `index.md`, `log.md`).
+
+## [2026-06-13] sync + lint | weekly verification pass (no new public API)
+Scheduled weekly run. No new hiveplotlib commits landed this week (HEAD is still 2026-05-31, branch `46-more-streamlined-networkx-usage-and-support`); the substantive v0.28 work this cycle was the `graph_metric_backend` dispatch feature (already filed 2026-06-11) and the JOSS Workstream B research (already filed 2026-06-12). The tool changes are therefore already captured: the `entities/hiveplotlib.md` hub, `concepts/graph-features.md`, and `index.md` all reflect backend dispatch, directedness inference, and the parallel-edge-collapse warning. This run verified that and ran a lint sweep rather than re-documenting shipped work.
+
+Lint fixes: corrected the example-notebook count from 49 to 50 (the Graph Metric Backends gallery notebook pushed the count up; `examples/*.ipynb` now lists 50) on the two living pages that still carried 49 (`overview.md`, `index.md`). The hub page already read 50.
+
+Lint observations (not fixed, recorded for a future pass): `sources/hiveplotlib-python.md` remains a dated 2026-04-06 snapshot (version `0.27.0a1`, 46 notebooks, 422 test functions); it is a point-in-time source summary, not a living page, so the current numbers live on `entities/hiveplotlib.md`. That same snapshot lists the edge-kwarg hierarchy in a different order than the canonical one in `concepts/edge-rendering.md` and the repo (`all` then `clockwise` then `counterclockwise` then `repeat` then `non_repeat`); worth reconciling when that page is next refreshed. No contradictions, stale claims, or orphan pages found among the living pages; the three new JOSS analyses are registered in `index.md` and cross-linked.
+
+Web scan for new external hive plot work (past week): nothing new surfaced. arXiv and general search return only the known prior art ([[nollenburg-2023-computing-hive-plots|Computing Hive Plots]] (arXiv 2309.02273), the [[p2cp|P2CP-revisited]] paper (arXiv 2109.10193), [[perez-2021-hype|HyPE]], and hiveplotlib's own docs). The June-2026 nxviz revival is already filed in `analyses/nxviz-comparison.md`. No 2026 hive plot papers or new tools found.
+
+Pages updated: 2 (`overview.md`, `index.md` — example count 49 to 50, `updated` dates bumped). No pages created.
