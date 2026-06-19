@@ -574,9 +574,13 @@ risk and no behavior change.
 
 ## Notebook review
 
-```
-Pending — invoke editorial-critic in post-implementation mode after Workstream E ships.
-```
+### Editorial-critic RE-CLEAR (post-impl, closure reconcile 2026-06-18)
+
+**Verdict: ready-to-ship. No must-fix.** An editorial-critic post-impl pass on the current `examples/computing_graph_metrics.ipynb` (which carries both Workstream E's structural revision of the `## Controlling the HivePlot Internal Graph Type` section and Workstream L's `## Parallel Edge` collapse-warning demo) returned ready-to-ship. The notebook is the right home, the datasets are coherent (Karate Club for `graph=` cases, the existing toy for nodes/edges cases), there is no genre drift (still a gallery `compute_graph_metrics` / `HivePlot` demonstration), and no class-scope drift (still a `HivePlot` page; `HivePlotMatrix` is referenced in prose only).
+
+The pass's only finding (notebook length / the internal-graph-type material split across two sub-sections) is **permanently declined** per the maintainer's single-notebook decision: the graph-metrics story stays in one notebook rather than being split into a separate internal-graph-type notebook. This is a standing design call, not an open item.
+
+**This closes the editorial gate for both Workstream E and Workstream L.** The original placeholder ("Pending — invoke editorial-critic in post-implementation mode after Workstream E ships") is satisfied; both workstreams' editorial-critic done-whens (the WS-E A7 gate and WS-L done-when #11) are met by this verdict.
 
 Workstream E is the **only** notebook-touching workstream. The gate is now **lifted** (amendment A7) and the scope is a
 **structural revision**, not a blurb. The notebook (`examples/computing_graph_metrics.ipynb`) is a gallery notebook; its
@@ -597,7 +601,7 @@ but coordinate on the resolved-flag path → D (propagation/docstrings) after B 
 
 ### Workstream A: `@requires_graph_type` decorator + centralized enforcement (replaces the hand-written guards)
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream A complete" 2026-05-29, plus the A-tests entry). The `@requires_graph_type` decorator and `_enforce_graph_type` helper are in the shipped `graph_features/networkx/_helpers.py`, and all ~20 wrappers are decorated.
 **Posture (amended A5):** Gary locked the FULLER decorator approach. This workstream does NOT add a parallel registry on
 top of the guards; it **replaces** the hand-written guards with a decorator that both declares the requirement and
 generates the raise. Net fewer lines, but a **wider sweep**: all ~20 wrapper bodies change (each gains a decorator and
@@ -645,7 +649,7 @@ engineer instead finds the decorator already present, halt under rule 9 and surf
 
 ### Workstream B: Up-front conflict validator + decisive error
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream B complete" 2026-05-29). The `_check_graph_type_conflicts` up-front validator with entry-point-branched messages is in the shipped `graph_features/__init__.py`.
 **Files:** `src/hiveplotlib/graph_features/__init__.py` (the validator, called inside `compute_graph_metrics` before any
 wrapper runs), plus tests.
 **Relationship to Workstream A (do not conflate — amendment A5):** A and B detect different things and produce two
@@ -694,7 +698,7 @@ docs metric-table directive = three consumers, two distinct user-facing messages
 
 ### Workstream C: Graph-type inference for unambiguous requested sets
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream C complete" 2026-05-29). The `_infer_graph_directed` helper and its threading through `_apply_graph_metrics` on both classes are shipped. Note: the `_graph_directed` / `_graph_directed_explicit` stash pair this workstream introduced was later collapsed into a single `_graph_directed: Optional[bool]` by Workstream G.
 **Files:** `src/hiveplotlib/graph_features/__init__.py` and/or `src/hiveplotlib/hiveplot.py` /
 `src/hiveplotlib/hiveplot_matrix.py` at the point where `graph_directed` is resolved before the internal graph is built.
 That site is the `_apply_graph_metrics` helper on each class, which passes the resolved value through as `directed=`
@@ -726,7 +730,7 @@ docstrings change in Workstream D.
 
 ### Workstream D: Propagation + docstrings (HivePlot, HivePlotMatrix, dispatcher)
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream D complete" 2026-05-29). The conflict-raise + inference docstrings ship across the dispatcher, `HivePlot`, and the `HivePlotMatrix` mirror; `make docs` builds clean.
 **Files:** `src/hiveplotlib/graph_features/__init__.py` (dispatcher docstring `:339-347` raises block),
 `src/hiveplotlib/hiveplot.py` (the `compute_graph_metrics` method and `__init__` `graph_directed` / `node_graph_metrics`
 param docstrings), `src/hiveplotlib/hiveplot_matrix.py` (mirror: `compute_graph_metrics` `:619-664` and the two
@@ -757,8 +761,7 @@ propagation.
 
 ### Workstream E: Notebook structural revision — FINAL (gate LIFTED; see amendment A7)
 
-**Status:** not started — gate lifted 2026-05-30 (Gary reviewed and is on board with the settled `HivePlot` /
-graph-metric changes). **Re-scoped from a "blurb" to a structural revision by amendment A7; the A7 done-when, the
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale). Gate lifted 2026-05-30; the structural revision shipped (Implementation log "Workstream E complete" 2026-05-30). The editorial-critic gate is now CLOSED with a ready-to-ship verdict — see the "## Notebook review" section and the editorial RE-CLEAR recorded there. **Re-scoped from a "blurb" to a structural revision by amendment A7; the A7 done-when, the
 section-by-section outline, and the verified break-case API usage examples below supersede the original blurb done-when.**
 **Files:** `examples/computing_graph_metrics.ipynb` (the **only** file; edit ONLY this `examples/` copy, never the
 auto-generated `docs/source/notebooks/` copy). Notebook prose is **Notebook Author's** domain.
@@ -775,7 +778,7 @@ cell pair) no longer holds; A7 replaces it.
 
 ### Workstream F: Guard-message entry-point clarity (single-metric guard names the class-level kwarg)
 
-**Status:** not started — **runs NOW**, after D, before the gated Workstream E (does NOT touch the notebook).
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream F complete" 2026-05-29 plus the F-tests entry). The three `_enforce_graph_type` message templates name both the class-level and low-level kwargs in the shipped source.
 **Origin:** amendment A6 (api-critic post-impl `worth-discussing`, Gary's option-C ruling). See A6 for the full rationale and the rejected options A and B.
 **Files:** `src/hiveplotlib/graph_features/networkx/_helpers.py` (the three `_enforce_graph_type` message templates), and `tests/graph_features_test.py` (the three reconstructor helpers the WS-A sweep asserts against).
 **Done when:**
@@ -2080,6 +2083,12 @@ Read the shipped source for all 7 entry points, the rewritten `_warn_if_parallel
 (remaining Plan amendments slots below, append-only as future emergent work surfaces.)
 ```
 
+### Closure-reconcile note for the ADR (2026-06-18): the shipped decorator field is `allows_multigraph`
+
+For the combined NetworkX ADR writer: this plan's body describes the `@requires_graph_type` decorator with a `multigraph_ok=True` kwarg (e.g. Workstream A's done-when: `@requires_graph_type(*, directed=None, multigraph_ok=True, hint=None)`) and a `GraphTypeRequirement` record field `rejects_multigraph: bool` (`= not multigraph_ok`). **That naming is stale against shipped reality.** The shipped decorator kwarg and the record field are both named **`allows_multigraph`** (default `True`), not `multigraph_ok` / `rejects_multigraph`. Verified in source: `@requires_graph_type(allows_multigraph=False)` at `src/hiveplotlib/graph_features/networkx/node_metrics.py:123` (and siblings), and `not _requirement_for(m).allows_multigraph` at `src/hiveplotlib/graph_features/__init__.py:298`. The companion field `requires_directed` is unchanged.
+
+Behavior is equivalent: the design collapsed the planned `multigraph_ok` kwarg + derived `rejects_multigraph` field into a single `allows_multigraph` field carried straight through (`rejects_multigraph == not allows_multigraph`), so every raise/no-raise outcome the plan body describes holds. Only the spelling of the kwarg/field changed. The ADR should use `allows_multigraph`.
+
 ## Holdouts
 
 - **None on the per-wrapper guards (changed by amendment A5).** Under the original registry-only framing the hand-written
@@ -2241,13 +2250,13 @@ released-behavior-only CHANGELOG rule, no entry.
 
 ### Added workstream G: Collapse the `_graph_directed` stash pair
 
-**Status:** source complete (2026-05-31); test re-expression (test-engineer) + qa pending
+**Status:** ✅ complete (closure reconcile 2026-06-18: the "test re-expression + qa pending" tail was stale; Implementation log "Workstream G complete" 2026-05-31). The `_graph_directed_explicit` field is fully retired — zero hits across both `src/` and `tests/` — so the test re-expression shipped alongside the source collapse.
 **Files:** `src/hiveplotlib/hiveplot.py`, `src/hiveplotlib/hiveplot_matrix.py`, `tests/hiveplot_test.py`,
 `tests/hiveplot_matrix_test.py`. (Operative scope, sites, and done-when are in amendment A8 above.)
 
 ### Added workstream H: Parallel-edge-collapse warning on the HivePlot graph-metrics path
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream H complete" 2026-05-31). The shared `_warn_if_parallel_edges_collapse` helper is wired into `HivePlot._apply_graph_metrics` in the shipped source. (Note: the detection semantics were later narrowed to same-direction-only by Workstream M.)
 **Origin:** amendment A9 (user ask). The operative rationale, placement justification, explicitness decision, rejected
 directedness warning, and warnings-as-errors scoping are in A9 above.
 **Files:** `src/hiveplotlib/hiveplot.py` (`_apply_graph_metrics`, `hiveplot.py:2231-2295`), plus a small detection helper
@@ -2278,7 +2287,7 @@ after H ships.
 
 ### Added workstream I: HivePlotMatrix mirror-or-confirm
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream I complete" 2026-05-31). Resolved as automatic-via-shared-helper: `HivePlotMatrix` calls the same `_warn_if_parallel_edges_collapse` helper from its `_apply_graph_metrics` seam in the shipped source.
 **Origin:** amendment A9.
 **Files:** `src/hiveplotlib/hiveplot_matrix.py` (the static `_apply_graph_metrics`, `hiveplot_matrix.py:~497-545`, which
 mirrors HivePlot's seam and builds via `nodes_edges_to_networkx(..., multigraph=graph_multigraph)` at `:~531-545`).
@@ -2297,7 +2306,7 @@ Tests are Workstream K's.
 
 ### Added workstream J: Docstrings for the parallel-edge-collapse warning
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream J complete" 2026-05-31). The `graph_multigraph` collapse-warning note shipped on all seven entry points. (Note: Workstream N later tightened that note to same-direction-only semantics.)
 **Origin:** amendment A9. Docstring writes are Docs Engineer's domain; the behavior lands in H/I.
 **Files:** `src/hiveplotlib/hiveplot.py` and `src/hiveplotlib/hiveplot_matrix.py` (the `graph_multigraph` param
 docstrings on `__init__` and the `compute_graph_metrics` methods, plus the `from_*`/`from_tags` matrix constructors that
@@ -2313,7 +2322,7 @@ carry the param).
 
 ### Added workstream K: Tests for the warning + the `tests/` warnings-as-errors sweep
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream K complete" 2026-05-31). The two dedicated `TestHivePlot*ParallelEdgeCollapseWarning` test classes shipped (26 tests). (Note: Workstream O added the same-direction-semantics tests on top after the M narrowing.)
 **Origin:** amendment A9. The `tests/` sweep precondition is the load-bearing early step (see A9's corrected
 warnings-as-errors scoping).
 **Files:** `tests/hiveplot_test.py`, `tests/hiveplot_matrix_test.py` (mirroring the source files), plus any existing
@@ -2336,7 +2345,7 @@ graph-metric test sites surfaced by the sweep.
 
 ### Added workstream L: Notebook demo of the parallel-edge-collapse warning (LAST, joins shipped Workstream E)
 
-**Status:** not started — runs LAST, after H-K.
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale). The shipped `examples/computing_graph_metrics.ipynb` carries a "Parallel Edge" section demonstrating the collapse warning (the full warning text and `warn_on_parallel_edge_collapse` are present). The editorial-critic gate is CLOSED with a ready-to-ship verdict — see the editorial RE-CLEAR recorded in the "## Notebook review" section.
 **Origin:** amendment A9. Notebook prose is Notebook Author's domain.
 **Files:** `examples/computing_graph_metrics.ipynb` (the ONLY file; edit only this `examples/` copy, never the
 auto-generated `docs/source/notebooks/` copy).
@@ -2399,11 +2408,11 @@ form (e.g. the older `pd.concat` scan, or an already-present opt-out kwarg), hal
 
 #### API Critic — post-implementation review (Workstream M)
 
-Pending — invoke api-critic in post-implementation mode after Workstream M ships.
+**Done (closure reconcile 2026-06-18: this placeholder was stale).** Workstream M's surface is covered by the **"API Critic — post-implementation review (A10) — `warn_on_parallel_edge_collapse` + narrowed collapse semantics (2026-06-01)"** block earlier in this amendment (under A10), which returned **Status: clean**. That review walked all seven entry points carrying `warn_on_parallel_edge_collapse`, the rewritten `_warn_if_parallel_edges_collapse` + `_num_distinct_ordered_edge_pairs` helpers, and the narrowed same-direction-only semantics — i.e. exactly the surface Workstream M shipped. No separate post-impl pass is outstanding; this placeholder redirects to that A10 review.
 
 ### Added workstream N: Docstrings for the opt-out kwarg + narrowed semantics
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; Implementation log "Workstream N complete" 2026-06-01. Outside the orchestrator's literal "A-K" tick instruction but ticked as the corollary that makes M/N/O consistent — M and O already read complete — and flagged in the orchestrator's report). The `warn_on_parallel_edge_collapse` docstrings and the same-direction-only `graph_multigraph` note shipped across all seven entry points.
 **Origin:** amendment A10. Docstring writes are Docs Engineer's domain; the behavior lands in M.
 **Files:** `src/hiveplotlib/hiveplot.py` and `src/hiveplotlib/hiveplot_matrix.py` (the new
 `warn_on_parallel_edge_collapse` param docstring on all 7 entry points, plus an update to the EXISTING

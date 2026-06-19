@@ -855,7 +855,7 @@ Five workstreams in recommended sequence: A → B → C, with D parallelizable a
 
 ### Workstream B: Tier 1 NetworkX additions (11 drop-in wrappers)
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; the Implementation log records "Workstream B complete" on 2026-05-25 and all 11 Tier 1 keys are in the shipped `GRAPH_NODE_METRICS`)
 **Files:**
 
 - `src/hiveplotlib/graph_features/networkx/node_metrics.py` — add 11 wrappers.
@@ -934,7 +934,7 @@ Partition-to-labels adaptors (components family): `connected_components`, `stron
 
 ### Workstream D: Roadmap entry for future igraph backend
 
-**Status:** not started
+**Status:** ✅ complete (closure reconcile 2026-06-18: header was stale; the Implementation log records "Workstream D complete" on 2026-05-25, shipped as item 6 "Optional `igraph` backend for `compute_graph_metrics`" in `docs/source/roadmap.rst`)
 **Files:**
 
 - `docs/source/roadmap.rst` — add a new numbered item (or sub-bullet under existing item 7, "More networkx compatibility") covering the future igraph backend pitch.
@@ -957,7 +957,7 @@ Workstream D is parallel-eligible against A/B/C: a docs writer can draft the pro
 
 ### Workstream E: Notebook updates and final CHANGELOG sweep
 
-**Status:** not started
+**Status:** ✅ complete, but the notebook narrative was SUPERSEDED (closure reconcile 2026-06-18: header was stale). E shipped (Implementation log entries on 2026-05-25 for the CHANGELOG sweep and the notebook cells, plus amendment 1's `HivePlotMatrix.from_partition` swap). The CHANGELOG sweep stands as-shipped. The notebook cells below, however, were later replaced: see the "Closure reconcile" note at the end of this workstream. The cell-level "Recommended additions" and "Done when" criteria below describe a Louvain / Les-Mis narrative that is NOT in the shipped notebook; they are obsolete, not outstanding.
 **Files:**
 
 - `examples/computing_graph_metrics.ipynb` — add small focused cells (per notebook-author skill, prefer additive over rewrite) demonstrating two or three of the highest-value new metrics. Recommended additions:
@@ -979,6 +979,12 @@ Workstream D is parallel-eligible against A/B/C: a docs writer can draft the pro
 4. CHANGELOG counts updated correctly and reflect the final shipped state.
 5. `make docs` builds the notebook into `docs/source/gallery_examples/` correctly.
 6. api-critic skim (optional) confirms the notebook examples match the imagined user task.
+
+**Closure reconcile (2026-06-18): the Workstream E notebook narrative was superseded; the shipped notebook uses a degree-discretization example.**
+
+The Implementation log entries for Workstream E (and amendment 1) describe a notebook narrative built on (1) "Community detection as a partition variable" using `louvain_communities` on Karate Club, (2) a "Precompute Once, Reuse Across Plots" section on `nx.les_miserables_graph()`, and (3) a `HivePlotMatrix.from_partition` swap for the Louvain cells. **That narrative is no longer in the shipped `examples/computing_graph_metrics.ipynb`.** The later graph-metrics notebook-restructure work (tracked in its own plan / MR) replaced it: the shipped notebook now partitions Zachary's Karate Club by node `degree`, discretized into three bins (`"low"` / `"medium"` / `"high"`) via `create_partition_variable`, rather than by Louvain community on Karate Club / Les Mis. Verified against the shipped notebook on branch `46-...`: zero `louvain` mentions, zero `les_miserables` mentions, the degree-discretization story present. The `harmonic_centrality` / `average_neighbor_degree` multi-metric cell and the `jaccard_coefficient` link-prediction-edge-coloring cell survived the restructure.
+
+Consequence for this plan: Workstream E's original cell-level "Recommended additions" and "Done when" criteria (the Louvain-as-partition, Les-Mis-precompute, `HivePlotMatrix`-vs-3-axis-`HivePlot` contrast) are **obsolete, not outstanding work**. The notebook objective (demonstrate the highest-value new metrics with a backend-dispatch forward-pointer) was met; the specific datasets and partition story changed downstream. The ADR should describe the as-shipped notebook (degree-discretization), not the Louvain/Les-Mis narrative this plan's log captured.
 
 ## Holdouts
 
@@ -1241,6 +1247,23 @@ Test-method-coverage audit: clean. All four new tests call the named method in
 6. **No new findings from the bugfix itself.** Code comment at `:2852-2855` reads cleanly (names the bug, names the fix, no AI filler, no em-dashes). Test naming follows the existing project pattern (`test_<method>_<scenario>`); the `_preserves_int_axes` suffix on the 4-group test mirrors the `_validates_*` / `_raises` suffix convention used elsewhere in the same test file. Test docstrings spell out the regression-test framing without rationalization (each names the bug being locked, not a substitute). The `pytest.mark.networkx` marker is correctly omitted on the int-partition tests (they construct nodes/edges directly without a NetworkX import); the `make test` matrix should pick them up under the unmarked default run, matching the brief's plan-line 1122 routing.
 
 **Verdict:** amendment closes cleanly. Workstream E amendment 1 (notebook-author re-run for the matrix-primitive swap) is unblocked and ready for dispatch.
+
+### Maintainer grill — deferred-work disposition (2026-06-18)
+
+Closure-pass grill ahead of the combined NetworkX ADR. This plan has no `## Alignment (grill)` section, so the disposition is recorded here. Append-only.
+
+**The four future-igraph open design questions → bucket: MAY HAVE FORGOTTEN ABOUT (live, tied to the igraph-backend roadmap item).**
+
+Open design questions #2-#5 in the "Open design questions" section above (#1 was resolved this sprint by Workstream A's structural seam) are not closed — they are deferred against the live igraph-backend roadmap item shipped as item 6 in `docs/source/roadmap.rst`. They stay on the radar as a coherent roadmap-tied cluster, not as forgotten loose ends. The four:
+
+1. **Gap-metric strategy** — how the future igraph backend handles metrics it does not implement (planner lean: raise `NotImplementedError` naming the gap and the NetworkX equivalent, not silent fallback).
+2. **leidenalg packaging** — `[igraph]` vs. separate `[igraph-leiden]` vs. `[igraph-all]` roll-up (planner lean: separate `[igraph-leiden]`, since leidenalg is GPL and some users opt out).
+3. **GPL license posture** — the license boundary note needed when an igraph extra ships.
+4. **igraph notebook approach** — parity notebook (`computing_graph_metrics_igraph.ipynb`) vs. extending the existing notebook (planner lean: parity notebook).
+
+**GPL posture (#3) is the gating sub-question.** Both `igraph` and `leidenalg` are GPL-licensed; hiveplotlib is BSD-3. Whether an igraph extra is viable at all (and in what packaging shape, which feeds #2) hinges on the license-boundary call: optional extras don't relicense the hiveplotlib distribution, but the boundary needs a deliberate decision and a docs note before any igraph code lands. Resolve #3 first; #1, #2, and #4 are downstream of it.
+
+**Durable home: the combined NetworkX ADR's deferred section.** These four travel together with the roadmap item; the ADR is the canonical forward record, and this plan's "Open design questions" section is the historical breadcrumb.
 
 ## Implementation log
 

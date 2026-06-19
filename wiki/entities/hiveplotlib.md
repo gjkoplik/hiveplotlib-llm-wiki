@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-06-11
+updated: 2026-06-18
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -15,7 +15,7 @@ hiveplotlib is a Python library for generating and visualizing static [[hive-plo
 
 ## Status
 
-- **Current version:** 0.27.0 (released 2026-04-10). v0.28.0 in development (`0.28.0a0`), focused on streamlined NetworkX integration (see "NetworkX integration" below).
+- **Current version:** 0.28.0 (released 2026-06-18), focused on streamlined NetworkX integration (see "NetworkX integration" below; the design decisions are distilled in [[0001-networkx-integration|ADR 0001]]).
 - **Python support:** 3.10+
 - **Repository:** GitLab (private)
 - **Install:** `pip install hiveplotlib`
@@ -37,9 +37,9 @@ hiveplotlib is a Python library for generating and visualizing static [[hive-plo
 ### Visualization Backends
 Six backends: matplotlib (default), bokeh, holoviews-bokeh, holoviews-matplotlib, plotly, datashader.
 
-### NetworkX integration (v0.28 in progress)
+### NetworkX integration (v0.28, shipped)
 
-v0.28.0 makes a NetworkX graph a first-class input and output, removing the manual extract-and-merge boilerplate that earlier workflows needed:
+v0.28.0 makes a NetworkX graph a first-class input and output, removing the manual extract-and-merge boilerplate that earlier workflows needed. The combined design rationale (including the declined `from_networkx` classmethod and the deferred future-igraph questions) is recorded in [[0001-networkx-integration|ADR 0001]]:
 
 - **Build from a graph:** `HivePlot(graph=...)` and `HivePlotMatrix.from_partition(graph=...)` / `from_variable_sweep(graph=...)` accept a NetworkX graph directly instead of separate `nodes` / `edges`. `graph_directed` / `graph_multigraph` default off `graph.is_directed()` / `graph.is_multigraph()`, so directed and multigraph inputs flow through without restating the type. (`from_tags` is intentionally excluded: tags are an `Edges`-level concept.)
 - **Export to a graph:** `HivePlot.to_networkx()` (and the underlying `converters.nodes_edges_to_networkx()`) round-trip a hive plot back to any of the four NetworkX graph classes; multi-tag `Edges` get a `tag` edge attribute.
@@ -79,6 +79,7 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 - [[Martin Krzywinski]] — Invented hive plots
 - [[hive-plot-matrix]] — Comparative visualization
 - [[graph-features]] — NetworkX node/edge metric wrappers (new in v0.28)
+- [[0001-networkx-integration|ADR 0001 — NetworkX integration]] — Binding design record for the v0.28 NetworkX story
 - [[differential-hive-plot]] — Not yet implemented; potential feature
 - [[p2cp]] — Polar Parallel Coordinates
 - [[karate-club-walkthrough]] — Step-by-step example walkthrough

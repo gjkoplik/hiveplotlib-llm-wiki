@@ -2,7 +2,7 @@
 title: Graph Features
 type: concept
 created: 2026-05-31
-updated: 2026-06-11
+updated: 2026-06-18
 sources: [hiveplotlib-python-repo]
 tags: [hiveplotlib, graph-metrics, networkx, node-assignment]
 ---
@@ -86,6 +86,7 @@ The graph-feature catalog is exactly the menu of **structural sweep variables** 
 
 ## See Also
 
+- [[0001-networkx-integration|ADR 0001 — NetworkX integration]] — Binding design record: the `graph=` input, this package, `graph_metric_backend` dispatch, and the conflict-validation layer
 - [[hiveplotlib]] — Implementation
 - [[node-assignment]] — How these metrics map nodes onto axes
 - [[hive-plot-matrix]] — Sweeping over structural metrics across a grid

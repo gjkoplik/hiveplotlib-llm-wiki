@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-06-13
+updated: 2026-06-19
 ---
 
 # Hive Plot Research Wiki — Index
@@ -9,6 +9,10 @@ updated: 2026-06-13
 ## Overview
 
 - [[overview]] — High-level synthesis of the wiki's current state of knowledge
+
+## Architecture Decision Records
+
+- [[0001-networkx-integration|ADR 0001 — NetworkX integration]] — v0.28 NetworkX story: unified `graph=` input (not a `from_networkx` classmethod), the `graph_features` package (~43 metrics), `compute_graph_metrics`, `to_networkx` + JSON export, `graph_metric_backend` dispatch, and the `@requires_graph_type` conflict-validation layer. Accepted.
 
 ## Sources
 
@@ -42,6 +46,8 @@ updated: 2026-06-13
 - [[differential-hive-plot]] — Visual diff between two hive plots for network comparison (1 source)
 - [[p2cp]] — Polar Parallel Coordinates for tabular data (1 source)
 - [[bezier-curves]] — Bézier curve mathematics and numba-accelerated implementation (1 source)
+- [[knowledge-graph]] — Heterogeneous typed graphs (RDF & property graphs): the data model and why whole-graph drawing fails (0 sources — web research)
+- [[metapath]] — Sequence of node/relation types; the slice that maps a KG onto two or three hive-plot axes (0 sources — web research)
 - [[applications-bioinformatics]] — Strongest adoption domain: gene networks, microbiome, protein interactions (2 sources)
 - [[applications-cybersecurity]] — Most innovative domain: ML featurization of hive plot images (0 sources — web research)
 - [[applications-software-engineering]] — Code dependency visualization (2 sources)
@@ -57,3 +63,4 @@ updated: 2026-06-13
 - [[nxviz-comparison]] — Capability comparison: nxviz (revived June 2026) vs hiveplotlib, for JOSS State of the field (1 source — web research)
 - [[hiveplotlib-research-impact]] — Citations, downstream uses, and PyPI download stats for the JOSS Research impact statement; thin-but-real (1 source — web research)
 - [[joss-ai-disclosure-precedents]] — Accepted-JOSS-paper AI-disclosure examples by posture, to calibrate the paper's mandatory disclosure (1 source — web research)
+- [[hive-plots-for-knowledge-graphs]] — Can hive plots render KGs? Reframes them as scoped metapath views; a seven-pattern taxonomy, a Hetionet example, what hiveplotlib supports today, and the ergonomic gaps (3 sources + web research)

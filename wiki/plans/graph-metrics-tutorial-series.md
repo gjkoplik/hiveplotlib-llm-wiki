@@ -29,7 +29,7 @@ Populated from research-liaison pre-task findings. No ADRs exist yet (`wiki/wiki
   - The honest **">3 groups -> switch to `HivePlotMatrix`, do NOT tune community resolution down to fake 3"** rule, explicitly reaffirmed there as anti-dishonest-pedagogy (its rejected-alternative decision). Adopted series-wide.
   - The **gallery-vs-tutorial split**: `computing_graph_metrics.ipynb` is the HivePlot mechanics *gallery* ("how do I compute a metric"); the tutorials are the *interpretive* layer ("which lens reveals what"). The series never re-treads gallery mechanics.
   - The **docs-registration mechanics**: register in `docs/source/notebooks/index.rst` (both the `nblinkgallery` block and the hidden `toctree`, same order), add a `nbsphinx_thumbnails` entry in `conf.py`, produce a `_static/` thumbnail, update the `CHANGELOG.rst` v0.28.0 WIP entry.
-  - **`finding_a_partition.ipynb`** (Les Misérables, partition-discovery arc) is Tutorial 1 and is **already planned and being built on its own track**. It is NOT re-authored here. It *migrates into* this section (Phase 1, WS-1). Its filename and title are user-confirmed; do not re-audit them.
+  - **`finding_a_partition.ipynb`** (Les Misérables, partition-discovery arc) is Tutorial 1 and is **authored by this plan as WS-0** (re-homed from the restructure plan's WS-C/D; see Plan amendments 2026-06-17). T1's full cell-aware spec — dataset/story gate, narrative spine, NARROW-scope discipline, community-labeling default/fallback, naming audit, dataset justification, and API usage sketches — now lives **in this plan** (WS-0, plus the "Patterns this replaces" / "Default justifications" / "Naming audit" / "API usage examples" sections below); it was moved out of `graph-metrics-notebook-restructure.md` on 2026-06-17 so this series plan is self-contained. The restructure plan retains only its gallery-cleanup half (its WS-A) and its history. T1's filename and title are user-confirmed; do not re-audit them.
 - **`wiki/wiki/analyses/gnn-heterogeneity-hive-plots.md` -- the conceptual parent (with the GNN/ML coupling stripped out).** Its four knob->interpretation mappings *are* the four spine tutorials, and its heterogeneity thesis *is* the capstone. The full mapping is in "The gnn-heterogeneity mapping" below. **Boundary (settled):** the ML coupling stays in the future-paper lane. The series is PLAIN DATA. See "Series-wide constraints" for the exact strip-out list.
 - **Interpretive anchors that exist and back the tutorials' prose** (do not create new wiki pages; see "Concept-page gaps"):
   - `wiki/wiki/analyses/karate-club-walkthrough.md` -- the plain-data interpretive model (Tutorials 1-3). Carries the "bridge-building is independent of within-faction popularity" reading: cross-faction (gray) edges are distributed across all axis positions, not clustered at the high-degree tips. That is a sorting-reveals-structure reading told without any ML.
@@ -52,13 +52,118 @@ Populated from research-liaison pre-task findings. No ADRs exist yet (`wiki/wiki
 - **Every construction mode the series uses already ships:** `HivePlot(graph=..., node_graph_metrics=[...], ...)`, `compute_graph_metrics(...)`, `NodeCollection.create_partition_variable(...)`, `HivePlotMatrix.from_partition(...)`, `HivePlotMatrix.from_variable_sweep(...)`. The four-mode HPM surface is documented in `hive-plot-matrix.md`.
 - **Feasibility-audit recovery clause.** If, while drafting any future tutorial, the notebook-author finds the API usage sketch needs a helper that is *not* on the shipped surface (i.e. the sketch invents an unauthorized convention), that is a `mental-model` rule-9 surface-back to orchestrator `amend-plan` for a feasibility check, *then* api-critic if a real surface change is implicated. Default expectation: no surface change is needed; this is a docs program.
 
+### T1 API usage sketches (WS-0; notebook content, not API surface)
+
+These are **notebook-content sketches** for T1's key cells (moved here from `graph-metrics-notebook-restructure.md` 2026-06-17 so this plan holds T1's full spec). They are runnable Python a notebook-author can build from, not final cells (prose, titles, figure polish are the notebook-author's craft under the tutorial skill). All use only shipped surface (`compute_graph_metrics`, `create_partition_variable`, `from_partition`, plain pandas for the label map); no new symbols. The tutorial surfaces `pip install hiveplotlib[networkx,datashader]` up front.
+
+```python
+# Sketch 1: the dataset and the problem (no natural partition, no sorting).
+# Lead cell after imports + background. Establishes "the data gives you neither."
+import networkx as nx
+from hiveplotlib.converters import networkx_to_nodes_edges
+
+G = nx.les_miserables_graph()  # 77 character nodes, co-appearance edges
+nodes, edges = networkx_to_nodes_edges(G)
+# nodes.data has only the unique_id (character name); no group column, no metric.
+nodes.data.head()
+```
+
+```python
+# Sketch 2: graph metrics give node-level values to sort by, but you still need axes.
+# Compute a sorting candidate; show it is a per-node scalar, not a grouping.
+from hiveplotlib.graph_features import compute_graph_metrics
+
+nodes, _ = compute_graph_metrics(
+    G,
+    node_metrics=["harmonic_centrality", "degree"],
+    target_nodes=nodes,
+    target_edges=edges,
+)
+nodes.data[["harmonic_centrality", "degree"]].describe()
+# harmonic_centrality sorts nodes within an axis, but does not tell us how many
+# axes to make or which node goes on which axis. We still need a partition.
+```
+
+```python
+# Sketch 3a: first discovery path -- discretize a metric into a <=3-group partition.
+# This is the relocated, *motivated* "bin a metric into a partition" demo.
+hc_partition = nodes.create_partition_variable(
+    data_column="harmonic_centrality",
+    cutoffs=3,
+    labels=["periphery", "supporting", "central"],
+)
+hp = HivePlot(
+    nodes=nodes,
+    edges=edges,
+    partition_variable=hc_partition,
+    sorting_variables="harmonic_centrality",
+    axes_order=["periphery", "supporting", "central"],
+    repeat_axes=True,
+)
+# 3-axis hive plot: a defensible, honest partition with an ordinal meaning.
+# But the bins are an imposed cut, not a structure the data itself reveals.
+```
+
+```python
+# Sketch 3b: better discovery path -- detect communities to find data-driven groups.
+nodes, _ = compute_graph_metrics(
+    G,
+    node_metrics=["louvain_communities"],
+    node_metric_kwargs={"louvain_communities": {"seed": 0}},
+    target_nodes=nodes,
+    target_edges=edges,
+)
+n_communities = nodes.data["louvain_communities"].nunique()
+n_communities  # Louvain finds more than 3 communities on Les Mis (expected ~6)
+# Honest framing: the data has more than 3 natural groups. We do NOT tune the
+# resolution down to force 3; we change the visualization primitive instead.
+```
+
+```python
+# Sketch 4: >3 communities motivate a HivePlotMatrix.
+# Name communities by most-central member for legible labels (and to sidestep the
+# deferred int->str label coercion). Exact label derivation is the author's call;
+# one workable shape:
+import pandas as pd
+
+df = nodes.data
+most_central = (
+    df.loc[df.groupby("louvain_communities")["harmonic_centrality"].idxmax()]
+    .set_index("louvain_communities")["unique_id"]
+    .to_dict()
+)
+df["community"] = df["louvain_communities"].map(
+    lambda c: f"{most_central[c]}'s group"
+)
+# rebuild a NodeCollection/Edges carrying the named 'community' column, then:
+hpm = HivePlotMatrix.from_partition(
+    nodes=nodes,            # carrying the named 'community' column
+    edges=edges,
+    partition_variable="community",
+    sorting_variables="harmonic_centrality",
+    backend="datashader",
+    unify_axes=True,
+    progress=False,
+)
+fig, axes, im_nodes, im_edges = hpm.plot()
+# 6x6 upper-triangular matrix of pairwise community comparisons.
+```
+
+```python
+# Sketch 5: hand off to the >3-groups menu. This is prose + a cross-link, not code.
+# "A hive plot matrix is one of several ways to handle more than three groups.
+#  For the full menu (more axes, two layers, collapsing groups, and the matrix
+#  shown here), see the Hive Plots with More Than 3 Groups tutorial." -> link to
+#  hive_plots_more_than_three_groups.ipynb. Do NOT re-tread its four options here.
+```
+
 ## Patterns this replaces
 
 This is a net-new docs section. The audit here is **section-worth / no-duplication** (the brief's explicit ask): map every proposed tutorial's payoff against the already-shipped corpus so the roadmap never authorizes a notebook a sibling already covers better. Grepped/inspected against the current branch.
 
 **Migration (settled boundary -- only one notebook folds in):**
 
-- **`finding_a_partition.ipynb` (Les Misérables) migrates into the new section as Tutorial 1.** It is built on its own track (`graph-metrics-notebook-restructure.md`); this roadmap only *places* it (Phase 1, WS-1: registers it in the new section's `index.rst` slot). Not re-authored.
+- **`finding_a_partition.ipynb` (Les Misérables) is Tutorial 1, authored by this plan as WS-0** (re-homed from `graph-metrics-notebook-restructure.md`'s WS-C/D; see Plan amendments 2026-06-17). It instantiates the per-tutorial build pattern against the cell-aware spec **this plan now holds in full** (WS-0's three sub-steps: dataset/story gate + draft + tutorial-side docs registration). WS-1 then creates the new section heading and confirms T1 sits in its `index.rst` slot. (The spec was moved out of the restructure plan on 2026-06-17 so this plan is self-contained; the restructure plan now holds only its gallery-cleanup WS-A.)
 - **`hive_plots_more_than_three_groups.ipynb` stays standalone and is only linked.** Inspected (cells 0, 19-34): it is *HPM-as-the-fourth-of-four-overflow-options* for a network that *naturally* partitions into >3 groups (trade data, `continent` partition, datashader). Its four options are "more axes / two layers / collapse-to-3 / HPM small multiples." **Tutorial 4 is a different question** ("use an HPM to *compare candidate lenses* and discover which reveals structure"), so they cross-link, they do not duplicate. De-confliction spelled out under Tutorial 4 below.
 - **`karate_club.ipynb` stays the general intro.** Not migrated; the section links to it where the karate-club interpretive model is the cleanest illustration (e.g. T2's assortativity reading).
 
@@ -83,7 +188,7 @@ No new user-facing API defaults (docs-only). The decisions that need justifying 
 - **The section is scoped tight: graph metrics -> deeper interpretation -> real data.** Justification: the corpus already has the *mechanics* layer (galleries) and the *general intros* (`karate_club`, the conceptual intros). The gap a user falls into is "I can build a hive plot and I can compute a metric, but I don't know which lens answers my question." That gap is the section's reason to exist, and keeping it tight is what stops every tutorial from drifting into a general graph-metrics survey (the explicit anti-goal).
 - **Best-fit-dataset-per-tutorial is the strategy; cross-tutorial dataset consistency is a welcome bonus, not a requirement.** Justification: each knob is best motivated by a graph whose structure *can* show that knob's payoff and *cannot* be read off a label. Forcing one dataset across the series would compromise some tutorials (e.g. an undirected graph cannot motivate the Directed expansion; a graph with an obvious partition cannot motivate T1's discovery arc). Carry the T1 plan's per-dataset discipline: each dataset is justified by what structure it *can* and *cannot* motivate.
 - **Phase-1 datasets:**
-  - **T1 (migrated): Les Misérables co-appearance network.** Already justified and user-sanctioned in the T1 plan (the canonical "no natural partition" network; 77 nodes; no ground-truth grouping). Not re-justified here.
+  - **T1 (WS-0): Les Misérables co-appearance network** (user-sanctioned; the justification now lives here, moved from the restructure plan 2026-06-17). The canonical "no natural partition" network: 77 character nodes, edges = co-appearance in the novel, no ground-truth grouping (contrast Karate's `club`, contrast the trade data's `continent`). This is the dataset that motivates "discovery" because the reader cannot fall back on a pre-labeled grouping. Two T1-specific display/labeling justifications go with it: (i) **communities named by most-central character, not integer labels** — numbered community labels are the gallery anti-pattern, but here *teaching the community-detection technique is the point*, so the labels are load-bearing and deserve human-readable names; naming by the most-central member (e.g. by `harmonic_centrality` or `degree` within each community) gives the reader a handle and as a bonus sidesteps the deferred `from_partition` int->str coercion; (ii) the tutorial is **a graph-theory journey, not literary analysis** — one sentence says the reader does not need to know the novel.
   - **T2 (new, Phase 1): leans Les Misérables, with Karate Club as the 2-faction baseline foil.** Justification (to be confirmed at WS-2's validate-then-commit gate, not locked here): the sorting payoff needs a graph with *visible variation* across multiple metrics (degree, betweenness, pagerank, core-number must each surface a *different* node ordering, or the tutorial has no story). Les Mis has a heavy-tailed degree distribution and clear bridge characters, so betweenness and degree should diverge legibly; Karate is the textbook assortativity illustration (the karate-walkthrough's "bridges are independent of popularity" reading) and is small enough to show the both-axes-sorted-by-degree geometry cleanly. The gate decides which carries the spine and which (if any) is the foil; the dataset is *not* pre-committed. Avoiding Cora/CiteSeer/PubMed/OGB-arxiv is mandatory series-wide (they drag the ML framing in).
 
 ## Naming audit
@@ -117,7 +222,7 @@ Placement in `index.rst`: a new section after `Hive Plots` and before (or after)
 
 ### Phase-1 tutorial names
 
-- **T1: `finding_a_partition.ipynb` / `### Finding a Partition with Graph Metrics`** -- user-confirmed in the T1 plan. Not re-audited; used as a fixed slug.
+- **T1: `finding_a_partition.ipynb` / `### Finding a Partition with Graph Metrics`** -- **user-confirmed** (the audit now lives here, moved from the restructure plan 2026-06-17; do not re-audit). Reasoning that held up: (1) "partition" is the established corpus vocabulary (`partition_variable`, `setting_partition_variable.ipynb`, `from_partition`), so a reader looking to solve "what do I partition on?" recognizes the title immediately; (2) "with Graph Metrics" ties it to the gallery it splits from and signals the technique; (3) "Finding" carries the discovery narrative the tutorial is built around (better than "Choosing," which understates that the data gives you *neither* a partition nor a sorting); (4) it does not over-index on "community detection," which is one step of the arc, not the whole thing; (5) snake_case file + `### H3` concept-noun-phrase title matches the conceptual-deep-dive subtype (`comparing_network_subgroups.ipynb`, `hive_plots_more_than_three_groups.ipynb`). Rejected candidates: `community_detection.ipynb` (too narrow — the back half of the arc only, and reads as a gallery feature-reference title); `les_miserables.ipynb` (dataset-forward, but the dataset is the vehicle, not the lesson); `choosing_a_partition.ipynb` (understates discovery). **Community-label display names:** the wrapper returns integer labels `0..5` (sorted largest-first per the label-order contract); T1 maps each to its most-central character's name for display (e.g. `"Valjean's circle"`). These are prose-only display strings, not API names; they derive *from* node ids, so any "Valjean" label is the actual node id — no collision. Audit OK.
 - **T2: working title `### Sorting with Graph Metrics`; filename PROVISIONAL, finalized at WS-2 authoring** (user guidance, 2026-05-29; see Plan amendment 2026-05-29 #2). Filenames are pragmatic working names; reader-facing titles are what get polished and are freely renamable. The working title "Sorting with Graph Metrics" parallels the likely T1 final title `### Finding a Partition with Graph Metrics` -- both end in "with Graph Metrics" and both sit under the `Using Graph Metrics with Hive Plots` section. **The filename is NOT locked**; it is decided at WS-2 authoring. Open choice:
   - `sorting_with_graph_metrics.ipynb` -- concept-phrase, matches T1 and the tutorial-corpus norm. The dispatching session's mild lean, since the `hpm_*` topic-prefix style is reserved for the gallery families.
   - `graph_metrics_sorting.ipynb` -- topic-prefix; the user's working assumption.
@@ -177,15 +282,15 @@ Each tutorial is built in four steps. The first is a hard gate.
 
 Phases are independently shippable and non-blocking. The section can go live after Phase 1 and read as complete. **No phase blocks another; no tutorial blocks another.** Sequencing *within* a phase is a recommendation, not a hard dependency, except the calibration checkpoint (a designed gate the user requested).
 
-- **Phase 0 -- section scaffolding (one-time, tiny).** Create the new `index.rst` section (heading + empty/near-empty `nblinkgallery` + `toctree`) and migrate `finding_a_partition.ipynb` into it once T1 has shipped on its own track. The section can hold a single tutorial. Detailed workstreams: WS-1.
-- **Calibration checkpoint (designed gate -- user-requested).** AFTER `finding_a_partition` ships on its own track and BEFORE Phase-1 *authoring* (WS-2) begins, this roadmap gets a calibration pass via orchestrator `amend-plan`: fold the learnings from the real, completed T1 notebook (what the build pattern actually cost, which conventions held, which dataset-gate criteria mattered) into the section conventions and the per-tutorial build pattern above. This is an explicit step in the sequencing, not optional. See "Calibration checkpoint" below.
-- **Phase 1 -- scaffold + migrate T1 + author T2.** Deliberately light, to avoid an open-ended commitment. Scaffold the section (WS-1), and author **T2 Sorting with Graph Metrics** (working title; WS-2: the gate, draft, critics, docs) -- the most broadly useful next door and the cleanest dataset story. Detailed, cell-aware workstreams: WS-1, WS-2. **Phase-1 done-when:** the new section exists in `index.rst`; `finding_a_partition` is registered under it; the T2 sorting notebook (filename finalized at WS-2 authoring) exists, passes `make test-nb`, is registered with a thumbnail, has cleared editorial-critic + viz-critic post-impl (no open `must-fix`), and `make docs` builds with no new warnings.
+- **Phase 0 -- section scaffolding (one-time, tiny).** Create the new `index.rst` section (heading + empty/near-empty `nblinkgallery` + `toctree`) and register `finding_a_partition.ipynb` in it once T1 is authored (WS-0). The section can hold a single tutorial. Detailed workstreams: WS-1.
+- **Calibration checkpoint (designed gate -- user-requested).** AFTER `finding_a_partition` ships (WS-0) and BEFORE Phase-1 T2 *authoring* (WS-2) begins, this roadmap gets a calibration pass via orchestrator `amend-plan`: fold the learnings from the real, completed T1 notebook (what the build pattern actually cost, which conventions held, which dataset-gate criteria mattered) into the section conventions and the per-tutorial build pattern above. This is an explicit step in the sequencing, not optional. See "Calibration checkpoint" below.
+- **Phase 1 -- author T1 + scaffold the section + author T2.** Deliberately light, to avoid an open-ended commitment. Author **T1 `finding_a_partition`** (WS-0: gate, draft, critics, docs), scaffold the section (WS-1), and author **T2 Sorting with Graph Metrics** (working title; WS-2: the gate, draft, critics, docs) -- the most broadly useful next door and the cleanest dataset story. Detailed, cell-aware workstreams: WS-0, WS-1, WS-2. **Phase-1 done-when:** `finding_a_partition` is authored (WS-0) and passes `make test-nb`; the new section exists in `index.rst` and `finding_a_partition` is registered under it (WS-1); the T2 sorting notebook (filename finalized at WS-2 authoring) exists, passes `make test-nb`, is registered with a thumbnail, has cleared editorial-critic + viz-critic post-impl (no open `must-fix`), and `make docs` builds with no new warnings.
 - **Phase 2 -- HPM-comparison + Reading the Edges.** Promote **T4 Comparing Lenses with an HPM** and **T3 Reading the Edges** to real workstreams (each via amend-plan, each instantiating the build pattern). Add the forward-links from T1/T2/T3 to T4 now that T4 exists. **Phase-2 done-when (set at promotion):** both notebooks shipped through the full build pattern; the T4<->more-than-three-groups cross-links resolve both directions; no open `must-fix`.
 - **Phase 3 -- capstone + expansion candidates.** Promote the **Capstone** (behind its hard validate-then-commit gate; build last) and, if they earn distinct payoffs, the **Core and Periphery** and **Directed: Sources and Sinks** expansions. **Phase-3 done-when (set at promotion):** the capstone ships through the build pattern with its gate passed; any promoted expansion ships likewise; the section reads as a coherent arc end to end.
 
 ## Calibration checkpoint (designed gate after T1 ships)
 
-A first-class, user-requested step in the sequencing. Trigger: `finding_a_partition` has shipped on its own track (its WS-A/B/C/D in `graph-metrics-notebook-restructure.md` all closed). Before WS-2 authoring starts, invoke orchestrator `amend-plan` on *this* roadmap to fold T1's real learnings in. Specifically, the calibration pass should:
+A first-class, user-requested step in the sequencing. Trigger: `finding_a_partition` has shipped (WS-0 closed). Before WS-2 authoring starts, invoke orchestrator `amend-plan` on *this* roadmap to fold T1's real learnings in. Specifically, the calibration pass should:
 
 - Reconcile the **per-tutorial build pattern** above against what T1 actually cost (did the gate catch the right risks? did editorial-critic + viz-critic in parallel work as scoped? did the named-community labeling mechanism land as the default or did the fallback fire?).
 - Tighten the **section conventions** (section name confirmed-or-changed by the user; placement in `index.rst` finalized; the cross-link policy validated against how T1's hand-off to `hive_plots_more_than_three_groups.ipynb` actually read).
@@ -207,18 +312,80 @@ Cross-links are added **only when both endpoints exist**. A tutorial never block
 
 Detailed, cell-aware workstreams exist for **Phase 1 only**. Everything past Phase 1 is in "Future tutorials (roadmap)". Each Phase-1 workstream instantiates the per-tutorial build pattern.
 
-**Critic coverage (Phase 1).** WS-1 (scaffolding/migration) is docs-registration only and gets a qa-engineer verification (no figure, no notebook authored -> no editorial-critic/viz-critic). WS-2 (authoring T2) gets the full build pattern: validate-then-commit gate (viz-critic on the scratch render) -> draft -> **editorial-critic + viz-critic post-impl in parallel** -> docs registration -> qa-engineer. api-critic is N/A (docs-only). The phase closes with a qa-engineer release-readiness pass.
+**Critic coverage (Phase 1).** WS-0 (authoring T1) gets the full build pattern: validate-then-commit gate (viz-critic on the scratch render) -> draft -> **editorial-critic + viz-critic post-impl in parallel** -> docs registration -> qa-engineer. WS-1 (scaffolding/registration) is docs-registration only and gets a qa-engineer verification (no figure, no notebook authored -> no editorial-critic/viz-critic). WS-2 (authoring T2) gets the full build pattern, same shape as WS-0. api-critic is N/A series-wide (docs-only). The phase closes with a qa-engineer release-readiness pass.
 
-### WS-1: Scaffold the section + migrate `finding_a_partition`
+### WS-0: Author T1 -- `finding_a_partition.ipynb` (Les Misérables partition-discovery tutorial)
 
-**Status:** not started (the migration sub-step is soft-blocked on T1 shipping on its own track; the scaffolding sub-step can run anytime).
+**Status:** not started (soft-gated behind the branch-`46-more-streamlined-networkx-usage-and-support` merge; the validate-then-commit gate sub-step can begin once that branch merges, since the gate renders against the metric surface that branch ships).
+**Specialist:** notebook-author (ground in `hiveplotlib-tutorial-notebook` + `viz-quality-bar`). Build pattern: validate-then-commit dataset/story gate (viz-critic on the scratch render) -> draft -> **editorial-critic + viz-critic post-impl in parallel** -> docs registration (docs-engineer for `.rst`/`conf.py`/CHANGELOG if the notebook-author does not do them) -> qa-engineer close.
+**Files:** `examples/finding_a_partition.ipynb` (new), then `docs/source/notebooks/index.rst`, `docs/source/conf.py` (thumbnail), `docs/source/_static/finding_a_partition.<ext>`, `CHANGELOG.rst`, and the targeted tutorial back-pointers in `examples/hpm_from_partition.ipynb` / `examples/hpm_from_variable_sweep.ipynb` plus the forward-pointer in `examples/computing_graph_metrics.ipynb`. Do NOT touch `docs/source/gallery_examples/` or `docs/source/notebooks/` notebook copies (auto-generated).
+
+Use the user-confirmed slug `finding_a_partition.ipynb` / `### Finding a Partition with Graph Metrics`; do not re-audit the name or re-justify the Les Mis dataset (both user-confirmed; see "Naming audit" and "Default justifications" below, where T1's full spec now lives). If, while drafting, the API usage sketch needs a helper not on the shipped surface, that is a rule-9 surface-back to orchestrator `amend-plan` for a feasibility check (default expectation: no surface change; this is docs-only).
+
+WS-0 has three sub-steps, instantiating the per-tutorial build pattern: the **dataset/story gate** (validate-then-commit), the **draft**, and the **tutorial-side docs registration**. The full cell-aware spec for each is below (moved here from `graph-metrics-notebook-restructure.md` on 2026-06-17 so this plan is self-contained; that plan no longer holds it).
+
+**Subtype (the draft):** conceptual deep-dive on a real dataset (so: `### H3` title, `#### Background` on Les Mis provenance, `#### References` with the Knuth / Les Mis co-appearance citation, rhetorical question posed early and revisited). Closest siblings to calibrate length and voice: `comparing_network_subgroups.ipynb`, `hive_plots_more_than_three_groups.ipynb`, `karate_club.ipynb`. The tutorial requires the `networkx` and `datashader` extras (the 6-community Les Mis HPM renders poorly in matplotlib; `hive_plots_more_than_three_groups.ipynb` uses datashader for the same reason); surface `pip install hiveplotlib[networkx,datashader]` up front.
+
+**Scope is NARROW — do not drift into a general graph-metrics survey.** This tutorial is the partition-discovery arc only (the spine below). A broader "what you can do with graph metrics as a whole" survey is explicitly OUT of scope and left as a possible *separate future notebook*, not scheduled (those mechanics already live across the cleaned `computing_graph_metrics.ipynb` gallery and the HPM galleries). This is the series-wide NARROW-scope discipline, applied to T1.
+
+**Narrative arc (the spine, do not pad):**
+
+1. **Background + the problem.** Les Mis co-appearance network: 77 characters, edges = co-appearance. Pose the question: a hive plot needs a *partition* (which axis a node goes on) and a *sorting* (where on the axis). This graph gives you *neither*. How do you choose? (One sentence: this is a graph-theory journey, not literary analysis; you do not need to know the novel.)
+2. **Metrics give you a sorting, not a partition.** Compute `harmonic_centrality` / `degree`. Show they are per-node scalars: good for sorting *within* an axis, but they do not tell you how many axes or which node on which. You still need a partition. (Sketches 1, 2.)
+3. **First path: discretize a metric into a <=3-group partition.** Bin `harmonic_centrality` into periphery/supporting/central, build a 3-axis hive plot. Honest, defensible, ordinal — but an *imposed* cut, not structure the data reveals. (Sketch 3a.) This is the relocated motivated "bin a metric" demo (the gallery shows the *mechanic* on Karate `degree`; T1 shows *why you'd reach for it* on real data where no partition exists).
+4. **Better path: detect communities to find data-driven groups.** Run Louvain. It finds **more than 3** communities (honest framing; do *not* tune resolution to force 3 — this is the series-wide anti-dishonest-pedagogy rule). (Sketch 3b.)
+5. **>3 communities motivate a `HivePlotMatrix`.** Build the 6x6 HPM with communities named by most-central member, datashader backend. This is the payoff figure. (Sketch 4.)
+6. **Hand off.** A hive plot matrix is one of several ways to handle >3 groups; for the full menu, see `hive_plots_more_than_three_groups.ipynb`. Cross-link, do **not** re-tread its four options. Revisit the opening question (we found a partition two ways; community detection found the data-driven one; >3 groups routed us to the matrix).
+7. **References.**
+
+**Community-labeling mechanism (default + fallback).** Naming communities by most-central character stands. **Default:** the named-column approach (Sketch 4) — derive a named string partition column, which yields character-named HPM row/column labels for free and sidesteps the deferred int->str label coercion. **Fallback:** relabel within the `HivePlotMatrix` itself, explored *only if* a clean label-override path exists on the matrix (the known coercion suggests labels derive from partition values, so the named-column path is likely the only robust route). The dataset gate validates whichever mechanism is chosen.
+
+**Done when:**
+
+*Sub-step 1 — dataset/story validate-then-commit gate (no repo artifact; renders to `/tmp/` per `mental-model` rule 16):*
+
+1. A fresh render of the Les Mis Louvain-community HPM (datashader backend, `from_partition`, communities named by most-central member) is produced and saved under `/tmp/` (e.g. `/tmp/finding_a_partition_validation/lesmis_communities_hpm.png`). The 3-axis harmonic-centrality-bin `HivePlot` (Sketch 3a) is also rendered for the "discretize" leg.
+2. A go/no-go judgment is recorded in the dispatch report (not the repo): does the 6-community structure read legibly as an HPM at notebook render size, do the named-community labels produce a coherent story (each community has a recognizable central character), and does the "metrics give you values -> still need axes -> discretize or detect communities -> >3 groups -> HPM" arc hold on this data? viz-critic concurs or dissents on the scratch render.
+3. If **no-go**: the report names the failure (communities not legible, labels confusing, story does not cohere) and proposes an alternative partition-less network (candidates: Florentine families [small, may be too small], a stochastic-block-model synthetic with a *hidden* partition, another `networkx` built-in co-occurrence graph). A no-go routes back to the dispatching session for a re-scope decision before drafting; it does **not** silently substitute a dataset. (Trade data is explicitly **out**: it is `hive_plots_more_than_three_groups.ipynb`'s dataset and has a natural `continent` partition, so it cannot motivate discovery.)
+4. The validation confirms the `networkx` + `datashader` extras are what the tutorial needs (matplotlib at 6 communities was the prior viz-critic concern; confirm datashader is the right call, matching `hive_plots_more_than_three_groups.ipynb`).
+5. The community-label derivation is validated as runnable on shipped surface: confirm `from_partition` accepts the named string-column partition and the 6x6 matrix builds without error (the int-partition `KeyError` is fixed; a *string* partition column is the tutorial's path, which also sidesteps the int->str label coercion). The default is the named-column approach; the in-matrix relabel fallback is explored only if a clean label-override path exists on the matrix.
+
+*Sub-step 2 — the draft (`examples/finding_a_partition.ipynb`, new):*
+
+6. `examples/finding_a_partition.ipynb` exists, follows the tutorial skill (H3 title `### Finding a Partition with Graph Metrics`, H4 subsections, `#### Background`, `#### References`, install-extras up front for `networkx,datashader`, prose-to-code balanced).
+7. The arc above is realized; the honest "Louvain finds >3 communities -> switch primitive, do not tune resolution" framing is preserved.
+8. Communities are displayed by most-central-character names, not integer labels (sidesteps the deferred coercion; avoids the numbered-label anti-pattern).
+9. The >3-groups hand-off cross-links `hive_plots_more_than_three_groups.ipynb` and does not duplicate its content. The discretize/detect contrast (ordinal bin vs. categorical community) is realized without copying the gallery's removed cells.
+10. The two relocated "orphan" demos are absorbed: community-detection-as-partition (here, on Les Mis, **not** Karate) and the motivated "bin a metric into a partition" demo (here, the harmonic-centrality 3-axis leg).
+11. `make test-nb` runs the new notebook end-to-end and passes (warnings-as-errors); datashader cells render.
+12. Voice-rule scan clean (no em-dashes, no AI filler; tutorial length within ~2x its closest sibling per the skill's length discipline).
+13. Figure-quality: datashader HPM follows `viz-quality-bar` datashader specifics (accept `cmap_nodes`/`cmap_edges` defaults, `unify_axes=True` for cross-cell comparison, pin rasterization params if cross-plot comparison is implied); the 3-axis hive plot follows hive-plot rules (repeat-axes two-tone if repeat axes used, title `y` tuned, alpha for density).
+14. Created only at `examples/finding_a_partition.ipynb` for the draft sub-step (docs registration is sub-step 3 / WS-1; do not edit `docs/` here).
+15. editorial-critic + viz-critic post-impl in parallel both clear (editorial-critic: genre fit as a motivated tutorial, the arc coheres with the lead-in matching the body, **section-worth under the NARROW-scope discipline** — no survey section the cleaned gallery or `hpm_from_variable_sweep.ipynb` covers better, the relocated demos sit naturally, the hand-off aims at the best next step; viz-critic: `good` or `worth-discussing`-only on the figures, datashader HPM especially). Any `must-fix` (editorial or viz) routes through orchestrator `amend-plan` (rule 14) before WS-0 closes.
+
+*Sub-step 3 — tutorial-side docs registration (was the tutorial half of the restructure plan's WS-D; pairs with WS-1's section scaffolding):*
+
+16. The notebook is registered in `docs/source/notebooks/index.rst` under the `Using Graph Metrics with Hive Plots` section (created in WS-1; **both** the `nblinkgallery` block and the hidden `toctree`, same position in each). Not the gallery index (it is a tutorial, not a feature reference).
+17. A `nbsphinx_thumbnails` entry is added to `docs/source/conf.py` (`"notebooks/finding_a_partition": "_static/finding_a_partition.jpg"` or matching extension), and the asset is produced under `docs/source/_static/` (per `viz-quality-bar` "Thumbnails" — the most representative figure, likely the named-community HPM; strip text). If producing the asset is deferred, the entry must still resolve or `make docs` warns.
+18. The `CHANGELOG.rst` v0.28.0 WIP Documentation block (currently the "three new gallery notebooks" framing) is updated to include the tutorial and to no longer mis-describe the set as only gallery notebooks (e.g. a "New tutorial: Finding a Partition with Graph Metrics ..." bullet). No em-dashes, no AI filler, length discipline.
+19. The two targeted tutorial back-pointers are added: `examples/hpm_from_partition.ipynb` (cell 47) and `examples/hpm_from_variable_sweep.ipynb` (cell 50) each gain a second sentence pointing at the tutorial (their existing "Computing Graph Metrics" pointer stays; both currently close their "Computing Graph Metrics During Construction" section with the identical "...or discretizing node graph metrics to use as partition variables, see Computing Graph Metrics" sentence). Optionally `hive_plots_more_than_three_groups.ipynb` gains a "this technique was motivated in the Finding a Partition tutorial" back-pointer if it reads naturally.
+20. The gallery **forward-pointer** into `examples/computing_graph_metrics.ipynb` is added: a closing prose paragraph framed as "for a narrative walkthrough of using metrics and community detection to find a partition when the data gives you none, see ...". This is the deferred WS-A done-when #7 pointer in the restructure plan; it lands here (the gallery is narrowed by that plan's WS-A / MR1, and this additive forward-pointer is clean against it once MR1 merges). It does not require editing the gallery's narrowed content, only appending the pointer.
+21. A grep confirms the new tutorial slug `finding_a_partition` appears in `notebooks/index.rst` (both blocks), `conf.py` (thumbnail), `CHANGELOG.rst`, and the back-pointer notebooks, and nowhere stale.
+
+*Close:*
+
+22. qa-engineer release-readiness pass: `make test-nb` green for all touched notebooks, `make docs` no new warnings (use `make docs`, not `make docs-strict`; scan the full warning set), lint/type green, Implementation log + CHANGELOG updated.
+
+### WS-1: Scaffold the section + register `finding_a_partition`
+
+**Status:** not started (the section-heading sub-step can run anytime; the registration sub-step pairs with WS-0, which authors the notebook being registered).
 **Specialist:** docs-engineer. Post-impl: qa-engineer (grep audit + `make docs` warning scan). No editorial-critic/viz-critic (no notebook authored, no figure produced).
-**Files:** `docs/source/notebooks/index.rst` (new section), and `finding_a_partition`'s registration entries (it is authored on its own track; here it is *placed*). Do NOT touch `docs/source/gallery_examples/` or `docs/source/notebooks/` notebook copies (auto-generated).
+**Files:** `docs/source/notebooks/index.rst` (new section), and `finding_a_partition`'s registration entries (authored here in WS-0; registered here). Do NOT touch `docs/source/gallery_examples/` or `docs/source/notebooks/` notebook copies (auto-generated).
 
 **Done when:**
 
 1. A new section titled `Using Graph Metrics with Hive Plots` (the user-confirmed section name) exists in `docs/source/notebooks/index.rst` with both an `nblinkgallery` block and a hidden `toctree`, placed after the `Hive Plots` tutorials section (it assumes the reader can build a hive plot). The section may contain a single entry.
-2. `finding_a_partition` is registered in the new section (both blocks, same order) -- moved here if T1's own track registered it elsewhere, or added here if T1 deferred its registration. (Coordinate with the T1 plan's WS-D so the entry is not double-registered or dropped.) Its `conf.py` thumbnail entry and `_static/` asset already exist from T1's track; verify they resolve.
+2. `finding_a_partition` (authored in WS-0) is registered in the new section (both blocks, same order). Its `conf.py` thumbnail entry and `_static/` asset are produced in WS-0; verify they resolve. (WS-0 and WS-1 may be one dispatch; if WS-0 does the registration itself, WS-1 reduces to creating the section heading and confirming T1 sits in it exactly once.)
 3. The section heading reads coherently against its siblings (`Hive Plots`, `Hive Plot Examples`); a reader scanning the index can tell this section is the interpretive one.
 4. `make docs` builds with the new section, no new warnings (use `make docs`, not `make docs-strict`; scan the full warning set per the user's recorded preference).
 5. A grep confirms `finding_a_partition` appears exactly once in each of the new section's two blocks and nowhere stale.
@@ -321,6 +488,42 @@ No dispatch implied by this amendment (naming only). Next dispatch is unchanged:
 ### 2026-05-29 -- T3 phrasing caveat captured (In-scope tweak)
 
 Recorded a correctness/phrasing caveat in the T3 "Reading the Edges" roadmap entry (a placeholder refinement; no scope, dataset, workstream, or teaching change). Source: while trimming the `computing_graph_metrics.ipynb` gallery's "Link Prediction Scores as an Edge Metric" section back to mechanics (the interpretive figure-reading belongs to T3), the cut sentence was also found inaccurate. It claimed low-Jaccard edges are the cross-club (inter-axis) ones, but at least one within-club edge carries a low coefficient on the Karate render, so the clean inter=low / intra=high dichotomy is false. T3 must phrase the inter-vs-intra reading as a tendency and verify the split (data check on `Edges.data` plus viz-critic on the render) before asserting it. No dispatch implied.
+
+### 2026-06-17 -- T1 (`finding_a_partition`) authoring re-homed into this plan (Added workstream WS-0)
+
+**Added workstream.** User decision (post-v0.28-review): `finding_a_partition.ipynb` (the Les Misérables partition-discovery tutorial) is **this plan's first authored tutorial**, not a notebook built elsewhere and merely placed here. It was previously tracked as WS-C (draft) + WS-D (tutorial wiring) of `graph-metrics-notebook-restructure.md`, with this roadmap only *migrating it in* at WS-1. That split is reversed: authoring ownership moves here; the restructure plan retains only its gallery-cleanup half (its WS-A). A matching amendment in `graph-metrics-notebook-restructure.md` (2026-06-17) records the scope removal on that side. This is **not** an in-scope tweak: it changes the authored-tutorial workstream set in both plans, so it is tagged as an Added workstream here and a scope removal (Deferred-out) there.
+
+**Delta:**
+
+- **New WS-0 added to "Workstreams (Phase 1 only)": author `finding_a_partition.ipynb`.** It instantiates the per-tutorial build pattern in full (validate-then-commit dataset/story gate with viz-critic on the scratch render -> notebook-author draft -> editorial-critic + viz-critic post-impl in parallel -> docs registration -> qa-engineer close). The complete cell-aware spine, dataset justification (Les Mis = the canonical no-natural-partition network), narrative arc (metrics give a sorting not a partition -> discretize a metric into a <=3-group partition -> detect communities -> >3 communities motivate a `HivePlotMatrix` -> hand off to `hive_plots_more_than_three_groups.ipynb`), NARROW-scope discipline, community-labeling mechanism (named-column default, in-matrix relabel fallback), the user-confirmed filename/title, and all done-whens are **already fully specified in `graph-metrics-notebook-restructure.md`'s WS-B (gate) + WS-C (draft) + the tutorial half of WS-D (registration)**. WS-0 here **adopts those specs by reference** rather than restating them (rule 17). It does not re-audit the filename/title (`finding_a_partition.ipynb` / `### Finding a Partition with Graph Metrics`, user-confirmed) and does not re-justify the Les Mis dataset.
+- **Series-wide constraints + the per-tutorial build pattern govern WS-0 as written** (they were authored from the T1 plan in the first place, so WS-0 is their originating instance).
+- **Sequencing within Phase 1:** WS-0 (author T1) -> WS-1 (scaffold the section + register T1 in it) -> calibration checkpoint -> WS-2 (author T2). WS-0 supersedes WS-1's "migration" framing: WS-1 no longer places a notebook authored elsewhere; it registers a notebook authored here in WS-0. (WS-1's docs-registration done-whens are otherwise unchanged.) WS-0's own docs registration and WS-1's section scaffolding can be one dispatch or two; if T1's registration lands inside WS-0, WS-1 is reduced to creating the section heading and confirming T1 sits in it.
+
+**Rationale:** the restructure plan's two-MR split (its 2026-05-29 delivery-split amendment) already carved the tutorial (MR2) cleanly off the gallery cleanup (MR1); MR2 was always going to branch off master after the gallery MR merged. Re-homing the authored tutorial onto the series plan that owns the `Using Graph Metrics with Hive Plots` section it lives in is the natural consolidation: the tutorial and its section now have one owner, and the restructure plan narrows to exactly the gallery cleanup it is named for.
+
+**Done-whens touched:**
+- *This plan:* Phase-1 done-when gains "`finding_a_partition` authored (WS-0) and registered (WS-1)" ahead of the T2 clause. WS-1's done-whens #2 ("registered ... moved here if T1's own track registered it elsewhere") are rephrased from migration to registration-of-a-locally-authored-notebook (no longer coordinating with another plan's WS-D, since that work is now WS-0/WS-1 here).
+- *`graph-metrics-notebook-restructure.md`:* its WS-C and the tutorial half of WS-D are removed from scope (recorded in that plan's 2026-06-17 amendment). WS-B (the dataset gate) moves with the authoring to WS-0 here.
+
+**Body sweep (this plan):** rephrased the "built on its own track / NOT re-authored here / migrates in" language at the Prior-ADRs bullet (line ~32), the Migration bullet under "Patterns this replaces" (line ~61), the Phase-0 bullet, the Phase-1 bullet, the calibration-checkpoint trigger, and WS-1 (Status / Files / done-when #2) to "authored here as WS-0, then registered." The `graph-metrics-notebook-restructure.md` reference at line ~26 stays (it remains the binding source of T1's conventions and full cell-aware spec, which WS-0 adopts by reference); only the "built there, not here" ownership claims flip.
+
+**Not a v0.28 blocker.** T1 ships post-release on its own branch off master after branch `46-more-streamlined-networkx-usage-and-support` merges. The gate is the **branch-46 merge** (the metric surface T1 exercises lives there), not the v0.28 release itself. No release dependency is presumed.
+
+### 2026-06-17 (later) -- T1's full spec moved IN; this plan is now self-contained (supersedes the by-reference choice)
+
+**In-scope tweak** (refines the WS-0 added by the earlier 2026-06-17 amendment; no new workstream, no specialist set change, no done-when removed, sequencing unchanged). User decision, superseding the earlier-same-day by-reference arrangement: make this series plan **self-contained** (it holds T1's full spec, not a pointer into the restructure plan) and the restructure plan **cleanly closeable on its WS-A alone**. Triggered by a user ask (rule 14: a decision changing where a load-bearing spec lives), not a critic finding.
+
+**Delta to this plan:**
+
+- **WS-0's three sub-steps are now spelled out in full here** (dataset/story validate-then-commit gate, draft, tutorial-side docs registration), replacing the prior "Spec adopted by reference" block that pointed at the restructure plan's WS-B/WS-C/WS-D-tutorial-half. The narrative spine, NARROW-scope discipline, honest ">3 communities -> HivePlotMatrix, do not tune resolution", subtype + extras, and community-labeling default/fallback are inlined into WS-0. Done-whens are renumbered 1-22 across the three sub-steps + close (was 1-4, the first two of which deferred to the restructure plan "by reference").
+- **The tutorial-specific spec sections moved in** to this plan's body: T1's dataset justification (Les Mis + named-by-character + graph-theory-not-literary-analysis) folded into "Default justifications"; T1's full naming audit (filename/title reasoning + rejected candidates + community-label display names) folded into "Naming audit"; the five **API usage sketches** added as a new "T1 API usage sketches (WS-0)" subsection under "API surface (none)" (notebook content, not surface; still no API change).
+- **By-reference language flipped to self-contained** at the Prior-ADRs T1 bullet (line ~32), the Migration bullet (line ~61), and inside WS-0. The restructure plan is still cited as T1's *origin* and the holder of WS-A's gallery cleanup, but is no longer the holder of T1's spec.
+
+**Rationale:** the by-reference arrangement (earlier 2026-06-17 amendment) kept one canonical spec copy to avoid drift, but left the restructure plan un-closeable on WS-A alone (a foreign tutorial spec lingered inside it) and made this plan non-self-contained. Moving (not copying) the spec resolves both: one owner, no drift (the restructure plan deletes what moved), this plan is self-contained, the restructure plan closes on WS-A.
+
+**Done-whens touched:** WS-0's done-whens are restructured from 4 (two by-reference) to 22 self-contained ones across gate/draft/registration/close; no done-when is *removed* in substance (the WS-B and WS-C done-whens are now WS-0 sub-step 1 and sub-step 2 directly). Phase-1 done-when is unaffected (it already reads "`finding_a_partition` authored (WS-0) and registered (WS-1)").
+
+**Cross-plan note:** the matching 2026-06-17 (later) amendment in `graph-metrics-notebook-restructure.md` records the deletion of the moved spec there and confirms that plan is now closeable on WS-A alone.
 
 ## Implementation log
 

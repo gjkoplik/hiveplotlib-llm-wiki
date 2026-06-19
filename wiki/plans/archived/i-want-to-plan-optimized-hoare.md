@@ -562,7 +562,7 @@ A and B share files (`hiveplot.py`, new `graph_features.py`) and are tightly int
   - Added internal `_build_edge_lookup` helper to centralize the 2-tuple-vs-3-tuple multigraph key normalization the spec flagged.
 - **No follow-ups** identified within Phase 1 scope.
 
-### Phase 2 — Workstream C (notebooks + gallery) — ⏳ Implementation work in progress (initial drafts committed, further review-pass work outstanding)
+### Phase 2 — Workstream C (notebooks + gallery) — ✅ **COMPLETE & REVIEWED** (closure reconcile 2026-06-18: header was stale; Workstream C Implementation summary records sign-off and `make test-nb` 49/49)
 
 Once A+B are reviewed and merged in concept, the API surface is stable. Spawn 3 parallel subagents (one per notebook). After they return, a single pass aligns voice and citations. Verify with `make test-nb` and `make docs`. **Stop here for human review** before moving to Phase 3.
 
@@ -635,7 +635,7 @@ Phases 1–3 land first; the new API is fully shipped and documented. Phase 4 re
 
 **Use available skills.** Same instruction as Phase 2: at session start, scan the `<system-reminder>` listing for any skill that applies to Jupyter notebook editing (names containing "notebook", "jupyter", or `.ipynb` in their description) and invoke it via the `Skill` tool before hand-editing cells. Skills like `simplify` may also apply for post-edit code review. If no notebook-specific skill is listed, proceed by hand.
 
-### Phase 5 — Workstream F (HivePlotMatrix graph-feature integration + HPM notebook sweep) — ⏳ Not started
+### Phase 5 — Workstream F (HivePlotMatrix graph-feature integration + HPM notebook sweep) — ✅ **COMPLETE** (closure reconcile 2026-06-18: header was stale; Workstream F Implementation summary records all five specialist passes shipped, `make test` 830 / `make test-nb` 49 / 100% coverage)
 
 After Phases 1–4 land, the API patterns are battle-tested across `HivePlot` and the docs/non-HPM notebooks are in good shape. Phase 5 makes graph features as easy to use during HPM construction as they are on `HivePlot`, adds `from_networkx_*` import classmethods, and retrofits the HPM notebooks to use the new API. **No `to_networkx` for HPM** — explicitly out of scope. Single agent for both the code and the notebook updates. Verify with `make format`, `make ty`, `make test` (100% coverage), and `make test-nb` (HPM notebook execution check). **Stop here for human review** before considering the full issue closed.
 
@@ -1677,7 +1677,7 @@ These are real but explicitly out of scope for the current branch / release. Log
 
 ### Implementation summary — Workstream G
 
-**Status:** code-engineer pass complete; test-engineer, notebook-author, qa-engineer, and post-impl api-critic still to run.
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18: the "still to run" tail was stale). All specialist passes shipped — code-engineer (source edits below), notebook-author (`hpm_generic.ipynb` log entry below), test-engineer (7 functions / 9 cases, 100% coverage), and api-critic post-impl (the `### API Critic — post-implementation review` block below, which adjudicated the dedup-key widening into Workstream H and surfaced the `from_variable_sweep` redundant-arg follow-up). Note the `from_networkx` dispatcher and the four-parameter lift on `from_networkx_variable_sweep` that this workstream added were subsequently torn out by Workstream I (consolidated NetworkX entry points); see the "In-scope tweak: consolidated NetworkX entry points (Decision 1)" amendment. The dedup-key widening survived into Workstream H.
 
 **Implementation log (code-engineer):**
 
@@ -1824,7 +1824,7 @@ Sequential dispatch (not parallel): the test depends on the code, the qa pass de
 
 ### Implementation summary — Workstream H
 
-**Status:** code-engineer and test-engineer passes complete; qa-engineer and post-impl api-critic still to run.
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18: the "still to run" tail was stale). code-engineer and test-engineer passes shipped; the api-critic post-impl review below returned `Status: clean`. The dedup-key widening to `(id(hp.nodes), frozenset(id(df) for df in hp.edges._data.values()))` is in the shipped source.
 
 **Implementation log (code-engineer):**
 
@@ -2367,7 +2367,7 @@ The api-critic planning-mode review above returned 4 concerns (3 must-fix + 1 wo
 
 ### Implementation summary — Workstream I
 
-**Status:** code-engineer pass complete on branch `46-more-streamlined-networkx-usage-and-support` (uncommitted). Source-side retrofit landed; tests, notebooks, CHANGELOG, and docs/autodoc rst pending the next dispatches (test-engineer, notebook-author, docs-engineer, qa-engineer, api-critic post-impl).
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18: the "pending the next dispatches" tail was stale). All passes shipped on branch `46-more-streamlined-networkx-usage-and-support` — source retrofit, test surface reshape, notebook sweep (plus the user-driven dual-path calibration pass), CHANGELOG + autodoc rst cleanup, and the docstring rule-8 / per-`:param:` propagation passes (all logged below) — and the `### API Critic — post-implementation review` block below returned the surface clean. Note the `from_tags(graph=...)` branch this workstream consolidated was later reverted by Workstream O (tags are an `Edges`-level concept); the other three consolidated entry points (`HivePlot.__init__`, `from_partition`, `from_variable_sweep`) stand.
 
 **2026-05-17: Workstream I (source edits) complete.** Consolidated the NetworkX entry-point surface on `HivePlot.__init__` (now accepts `(nodes, edges)` OR `graph=`) and on `HivePlotMatrix.from_partition` / `from_variable_sweep` / `from_tags` (same shape). Tore out `HivePlot.from_networkx`, `HivePlotMatrix.from_networkx`, `HivePlotMatrix.from_networkx_partition`, `HivePlotMatrix.from_networkx_variable_sweep`, `HivePlotMatrix.from_networkx_tags`.
 
@@ -2742,7 +2742,7 @@ Lean toward less prose rather than more — the section currently overpromises a
 
 **Date:** 2026-05-17
 **Trigger:** user ask on branch `46-more-streamlined-networkx-usage-and-support` (in-flight, nothing shipped from this branch yet). The two `networkx_to_nodes_edges` passthrough parameters that Workstream I carried into `HivePlot.__init__` and the three HPM `from_*` factories — `unique_id_name` (introduced at the `from_networkx` signature design at lines 79-80 of this plan, surviving the Workstream-I consolidation into `HivePlot.__init__` line 1790) and `check_uniqueness` (line 1791) — are conceptually part of the `graph_*` cluster (`graph_directed`, `graph_multigraph`, `graph_source_attribute_name`) but the missing prefix makes them visually disconnected from that group. They currently sit in the docstrings between `sorting_variables` and `backend` (e.g. `src/hiveplotlib/hiveplot.py:1681-1685`) as if they had equal footing with `partition_variable`, when in fact they only apply when `graph=` is passed. The user authorized renaming to `graph_unique_id_name` / `graph_check_uniqueness` and reordering the docstrings to cluster the two with the other `graph_*` parameters near the end of the parameter list. No deprecation shim — nothing on this branch has shipped.
-**Status:** not started
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18; see the Implementation summary and api-critic post-impl below). Note: `graph_unique_id_name` / `graph_check_uniqueness` were themselves dropped entirely by the later Workstream K; the rename is historical.
 **Files:**
 
 - `src/hiveplotlib/hiveplot.py` — `HivePlot.__init__` docstring (lines 1681-1685) and signature (lines 1790-1791). Rename to `graph_unique_id_name` / `graph_check_uniqueness`. Reorder the docstring entries so they cluster with `graph_directed` / `graph_multigraph` / `graph_source_attribute_name` near the end of the parameter list, not between `sorting_variables` and `backend`. Reorder the signature's keyword-only block to match the docstring grouping where the keyword-only ordering allows.
@@ -2781,7 +2781,7 @@ Lean toward less prose rather than more — the section currently overpromises a
 
 ### Implementation summary — Workstream J
 
-**Status:** code-engineer pass complete on branch `46-more-streamlined-networkx-usage-and-support` (uncommitted). api-critic post-impl pass pending.
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18: the "api-critic post-impl pass pending" tail was stale). code-engineer rename + reorder pass shipped, the api-critic post-impl review ran (`propose 3`), and all three findings were absorbed into the "Workstream J done-when extension for `graph_*` taxonomy framing" in-scope tweak, which completed (extension log below).
 
 **2026-05-17: Workstream J (source rename + docstring reorder) complete.** Renamed the two `networkx_to_nodes_edges` passthrough kwargs (`unique_id_name` → `graph_unique_id_name`, `check_uniqueness` → `graph_check_uniqueness`) on `HivePlot.__init__` and the three `HivePlotMatrix.from_partition` / `from_variable_sweep` / `from_tags` factories, and reordered both the signatures and the docstring `:param:` entries so the two cluster with the existing `graph_directed` / `graph_multigraph` / `graph_source_attribute_name` group at the end of each parameter list (rather than appearing between `sorting_variables` and the next non-graph param as they did before). The internal passthrough call sites — one in `HivePlot.__init__` at `hiveplot.py:1864-1865` and one per HPM factory at `hiveplot_matrix.py:1056-1057`, `:1403-1404`, `:1846-1847` — now use the rename seam: the kwarg-name on the converter call stays original (`unique_id_name=`, `check_uniqueness=`) while the value comes from the renamed local (`graph_unique_id_name`, `graph_check_uniqueness`). `hiveplotlib.converters.networkx_to_nodes_edges`, `BaseHivePlot.add_nodes(check_uniqueness=...)`, `hiveplotlib.node.nodes_from_dataframes`, and `tests/converters_test.py` are untouched per the out-of-scope list.
 
@@ -2909,7 +2909,7 @@ No new findings surfaced by the extension pass. The `graph_*` taxonomy story now
 
 **Date:** 2026-05-17
 **Trigger:** user ask on branch `46-more-streamlined-networkx-usage-and-support` (nothing on this branch has shipped). Both `graph_unique_id_name: str = "unique_id"` and `graph_check_uniqueness: bool = True` have zero usage across `examples/` and the documented surface (per qa's earlier sweep), and the two-step path (`nodes, edges = networkx_to_nodes_edges(graph, unique_id_name=..., check_uniqueness=...)` followed by passing `(nodes, edges)`) is the sufficient escape hatch for the rare caller who needs conversion customization. Of equal weight: these two params are exactly what triggered the 3-family `graph_*` taxonomy that Workstream J + its extension just spent two passes framing. Dropping them reverts the taxonomy to its original clean 2-family shape (`graph` input vs. `graph_directed` / `graph_multigraph` / `graph_source_attribute_name` internal-metric config), so the framing work the extension pass shipped is undone alongside the removal — not as collateral, but as the explicit payback for the original framing work being load-bearing only because these two params existed. Reversibility cost is low (nothing shipped), and the move aligns with `CLAUDE.md` guidance to not add features beyond what the task requires.
-**Status:** not started
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18; see the Implementation summary, the api-critic post-impl review for Workstream K, and the "Workstream K done-when extension for converter breadcrumb" in-scope tweak, all below). The two params are absent from the shipped `HivePlot.__init__` and HPM `from_*` signatures.
 **Bucket:** Added workstream (subtractive).
 
 **Files:**
@@ -3175,7 +3175,7 @@ code-engineer (single small pass: append the breadcrumb sentence to all four `:p
 
 **Date:** 2026-05-17
 **Trigger:** user review of the Workstream I locked prose. Two coupled observations: (a) the docstrings and error messages use "shape" as the abstract noun for "what kind of input you're providing" (e.g. lede paragraph "two distinct input shapes"; error message "Cannot mix data shapes"; `:param graph_directed:` reference to "the input ``graph`` shape" and "``(nodes, edges)``-shape default"; `:raises:` line "if neither shape is provided"); the word is numpy-borrowed and overloaded ("shape" means dimensionality in dominant data-library usage), so the semantically correct word is "inputs". (b) the `(nodes, edges)` tuple notation in error messages and docstrings reads as "pass me a Python tuple `(nodes, edges)`" which is the wrong mental model — there are two separate parameters, not a tuple. Preferred phrasing: "the `nodes` and `edges` parameters" or "both `nodes` and `edges`", using the word "parameters" itself to disambiguate from "a tuple." User reviewed and agreed on sample rewordings for the three locked error messages on `HivePlot.__init__` and the docstring lede; the rest of the surface inherits the same shape-of-change. User explicitly scoped: "I think you're gonna wanna check over everything in the hive plot matrix Python script. And we may even need to check some notebooks." Full-file sweep authorized on `hiveplot_matrix.py`; targeted prose sweep authorized on the affected notebook(s).
-**Status:** not started
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18: header was stale; not in the orchestrator's named stale-header list for this plan but ticked as a reconcile-to-reality corollary and flagged in the report). All passes shipped — code-engineer + docs-engineer (source prose sweep), test-engineer (12 byte-for-byte error-message assertions updated), notebook-author (vocabulary sweep), plus the CHANGELOG sweep — and the api-critic post-impl review for Workstream L below returned clean. The "shape" → "inputs" / drop-`(nodes, edges)`-tuple-notation vocabulary lock is in the shipped source and error messages.
 **Bucket:** Added workstream.
 
 **Files:**
@@ -3607,7 +3607,7 @@ This in-scope tweak entry stays in place as historical record (the docs-engineer
 
 **Date:** 2026-05-18
 **Trigger:** docs-engineer surface-back from the immediately-preceding in-scope tweak ("pay down the accumulated `TypeAliasForwardRef` Sphinx warnings"). The trigger contract on that tweak named "moving an alias declaration to a module Sphinx can discover" as a surface-back case, and the investigation log confirms the fix matches that case verbatim. Re-triaged here from an in-scope tweak because the change touches source code in two files, modifies type-checking annotations, removes five `# ty:ignore` / `# noqa` comments, and warrants the full QA verification gate (`make ty` / `make format` / `make test` / `make docs` / `make linkcheck`) rather than a docs-config-only verification surface.
-**Status:** not started
+**Status:** ✅ RESOLVED (closure reconcile 2026-06-18 — but by a DIFFERENT mechanism than the blocked code-engineer attempt logged below; see the "Closure reconcile" note at the end of this workstream for the as-shipped resolution). The blocked-state log below ("code-engineer dispatch blocked — plan / repo state mismatch") describes an attempt that was superseded; do not read it as the final state.
 **Files:**
 
 - `src/hiveplotlib/hiveplot.py` — add `TYPE_CHECKING` to the existing `from typing import (...)` block at lines 11-21 (already imports `Optional`, `Sequence`, etc.); add a `if TYPE_CHECKING: import networkx as nx` block after the typing imports and before the `import numpy as np` block (idiomatic placement: stdlib + typing imports first, then `TYPE_CHECKING` guard, then third-party runtime imports). Two annotation sites: `:1592` (`BaseHivePlot.to_networkx -> "nx.Graph"`) and `:1790` (`HivePlot.__init__` `graph: Optional["nx.Graph"]`).
@@ -3682,6 +3682,18 @@ Agreed-skip — no user-facing API surface change. Skeleton retained per the rec
 - Other `# ty:ignore` / `# noqa: F821` comments elsewhere in the source tree. Sweep is scoped to `hiveplot.py` and `hiveplot_matrix.py`; any unrelated suppressions earned their keep on different grounds and are out of scope.
 - api-critic post-impl pass. Skeleton retained per the recurring-miss lesson; the surface is API-clean and the critic has nothing to review. The qa-engineer's standard release-readiness sweep is the only post-impl review.
 
+**Closure reconcile (2026-06-18): as-shipped resolution — a different mechanism than the blocked attempt above.**
+
+The "code-engineer dispatch blocked" log above (and its three recommended-follow-up decision points) documents an attempt that did NOT ship. That attempt tried to *unquote* the annotations (`Optional["nx.Graph"]` → `Optional[nx.Graph]`) under a `TYPE_CHECKING`-only import and hit a runtime `NameError` (annotations evaluate at definition time without `from __future__ import annotations`). The blocked entry is preserved as historical record — its diagnosis of why naive unquoting fails is load-bearing context — but it is not the final state.
+
+The TypeAliasForwardRef warnings were instead resolved by a three-part mechanism, all verified in the working tree as shipped on branch `46-more-streamlined-networkx-usage-and-support`:
+
+1. **`if TYPE_CHECKING: import networkx as nx`** added at the top of both files (`src/hiveplotlib/hiveplot.py:26-27`, `src/hiveplotlib/hiveplot_matrix.py:29-30`), with `TYPE_CHECKING` added to the existing `from typing import (...)` block.
+2. **The string quoting is KEPT** on the annotations (`Optional["nx.Graph"]`), not dropped. Keeping the quotes is what sidesteps the definition-time `NameError` the blocked attempt hit, while the `TYPE_CHECKING` import lets ty and Sphinx see the real symbol. Confirmed in source: `hiveplot.py:86`, `:262`, `:1905` (the `-> "nx.Graph"` return), `:2157`; `hiveplot_matrix.py:1062`, `:1446`.
+3. **A `fix_reference` hook in `docs/source/conf.py`** (lines 149-175), wired to Sphinx's `missing-reference` event, rewrites the `nx.Graph` reftarget to the canonical `networkx.Graph` for intersphinx. The earlier `autodoc_type_aliases = {"nx.Graph": "networkx.Graph"}` entry that the blocked investigation discussed is **gone** (zero hits in `conf.py`); the `missing-reference` hook supersedes it.
+
+`make docs` builds zero-warning. The data-loss event the blocked entry warned about (the destructive `git checkout --` that wiped uncommitted `hiveplot_matrix.py` work) was recovered by the user from an editor buffer; the code is at its intended state. Landing commits: `9d0ac23 "sphinx"` and `24b0969 "fix docs build"`. No api-critic post-impl needed (the user-visible signature is unchanged; only the rendered cross-ref improved).
+
 ### In-scope tweak: Workstream L language pass on the new `_resolve_graph_or_nodes_edges` helper
 
 **Date:** 2026-05-18
@@ -3754,7 +3766,7 @@ The convention to authorize, grounded in existing library behavior: :py:func:`hi
 
 **Workstream affected:** F (the `from_networkx_tags` sibling that originally shipped the flawed semantics) and I (the consolidation that preserved the flaw under `from_tags(graph=...)`). Both Implementation summaries already carry resolution notes pointing here (see Workstream F's summary at "Semantic-flaw resolution via Workstream N" and Workstream I's at "`from_tags(graph=...)` semantic correction tracked in Workstream N").
 
-**Status:** not started
+**Status:** ✅ SHIPPED, then REVERTED IN FULL by Workstream O (closure reconcile 2026-06-18: the "not started" header was stale). All five specialist passes shipped (Implementation summary below); the user then reviewed the surface end-to-end and decided tags are an `Edges`-level concept, not a graph-level one, reverting the entire `from_tags(graph=...)` surface under Workstream O. The api-critic post-impl block below reads "N/A — reverted by Workstream O." Shipped reality: `from_tags` carries no `graph=` and no `tag_attribute_name`.
 
 **Files:**
 
@@ -4275,7 +4287,7 @@ N/A — Workstream N was reverted in full by Workstream O before api-critic post
 
 **Workstreams affected:** N (the work being reverted in full) and I (the "four entry points take `graph=`" framing in this plan's Workstream I summary and in the v0.28.0 CHANGELOG bullet, both narrowed to three). The other Workstream I tear-outs (the four `from_networkx*` classmethods, the dispatcher, the four-parameter signature lift, the consolidated shape on the three remaining entry points, the locked both / neither / partial `ValueError` trio) stand unchanged.
 
-**Status:** not started.
+**Status:** ✅ COMPLETE / SHIPPED (closure reconcile 2026-06-18: the "not started" header was stale; not in the orchestrator's named stale-header list but ticked as the necessary corollary of ticking Workstream N to "reverted by O" — see the closure-reconcile flag in the orchestrator's report). code-engineer, test-engineer (full `pytest tests/ -n 7`: 854 passed at 100% coverage), and notebook-author passes shipped, plus two authorized follow-up code-engineer passes (concrete `graph_*` defaults on `from_tags`; em-dash scrub). No separate qa-engineer log entry, but the test-engineer pass ran the full suite green at 100% coverage, and the working tree confirms the done-when sweep (`from_tags(graph=` and `tag_attribute_name` both clear outside the export-side `converters.py`). No api-critic post-impl by design (see "Why no api-critic post-impl review for Workstream O" above).
 
 **Files:**
 
@@ -4371,7 +4383,7 @@ amendment above.)
 
 ### Implementation summary — Workstream O
 
-**Status:** in progress (code-engineer pass complete; test-engineer / notebook-author / qa-engineer pending).
+**Status:** ✅ COMPLETE (closure reconcile 2026-06-18: the "in progress" tail was stale). code-engineer, test-engineer (full `pytest tests/ -n 7`: 854 passed at 100% coverage), and notebook-author passes shipped below, plus two authorized follow-up code-engineer passes (concrete `graph_*` defaults; em-dash scrub). The working tree confirms the revert: `from_tags` carries no `graph=` / `tag_attribute_name`. No api-critic post-impl by design.
 
 **2026-05-18: code-engineer (Workstream O source + CHANGELOG revert on `src/hiveplotlib/hiveplot_matrix.py` and `CHANGELOG.rst`).**
 
@@ -4667,4 +4679,22 @@ Test-method-coverage audit: clean. All four touched entry points have at least o
 4. **`from_tags` asymmetric pointer phrasing.** The plan's planning entry references "the 'Building Multi-tag `Edges` from a NetworkX Graph' recipe in the `from_tags` docstring (added in Workstream O)." Grep confirms no such literal heading exists in the source — the recipe is the `.. note::` block at `src/hiveplotlib/hiveplot_matrix.py:1706-1716`, which has no rubric or section header. So the current short form ("see the `from_tags` docstring for the recipe") is the right call: a more-specific anchor ("see the `Building Multi-tag Edges from a NetworkX Graph` section ...") would invent a heading that doesn't render. If anyone later restructures the docstring to give the recipe a literal heading or `.. rubric::`, the message can deepen its anchor at that point. Logged as the low-confidence concern above so the link survives a future docstring restructure.
 
 **Sanity sweep across the four files and six tests.** Predicate identical across all four sites (4 lines × 4 sites = 16 lines of repeated guard). The plan's code-engineer log explicitly considered helper extraction and declined it because the locked messages differ per site; a shared helper would only hide the verbatim strings without saving meaningful lines. I agree with that call: each guard is a four-line block carrying a verbatim message, and a shared helper would either (a) take the message as a parameter (loses the "grep the locked text and find it at the call site" property) or (b) dispatch by class name (adds indirection for zero benefit). Tests cover all four sites; coverage-missing-line ranges verify each guard block (1917-1924, 1075-1081, 1411-1417, 1835-1840) is exercised. No taste calls beyond the one low-confidence above.
+
+### Maintainer grill — deferred-work disposition (2026-06-18)
+
+Closure-pass grill ahead of the combined NetworkX ADR. This plan has no `## Alignment (grill)` section, so the dispositions are recorded here. Append-only.
+
+**1. `from_variable_sweep` redundant-arg validator → bucket: MAY HAVE FORGOTTEN ABOUT (real, low-urgency; preserve as a live deferred item).**
+
+`from_variable_sweep` silently accepts both `partition_variable` AND `partition_variables_list` together (and likewise `sorting_variables` + `sorting_variables_list`): the list branch wins and the singleton is silently ignored in 2D-grid mode, rather than raising. This is a genuine gap in `from_variable_sweep`'s validator, surfaced originally as the api-critic post-impl Workstream G `worth-discussing` finding and tracked in the "Deferred follow-up: from_variable_sweep silent redundant-arg acceptance" entry earlier in this section. Disposition: **do not drop.** Keep it live. The fix targets `from_variable_sweep`'s validator directly (add an explicit "redundant singleton + list" `ValueError` alongside the existing validation rules); it has no dependency on the torn-out `from_networkx*` surface. **Durable home: the combined NetworkX ADR's deferred section** (this is the canonical record going forward; the earlier deferred entry is the historical breadcrumb).
+
+**2. `GraphMetricsSpec` dataclass consolidation → bucket: DECIDED AGAINST, with a revival trigger.**
+
+Considered consolidating the ~8-kwarg graph-metric surface (`node_graph_metrics`, `edge_graph_metrics`, `node_graph_metric_kwargs`, `edge_graph_metric_kwargs`, `node_graph_metric_rename`, `edge_graph_metric_rename`, `graph_metric_backend`, plus the `graph_directed` / `graph_multigraph` pair adjacent to it) into a single typed `GraphMetricsSpec` dataclass. **Decided against.** Rationale: the surface is fine in practice; a user can build and splat a dict; sane defaults keep most kwargs untouched on the common call; and a spec object would tax the common one-or-two-kwarg call (the dominant usage is `node_graph_metrics="degree"`, which a spec object turns into ceremony).
+
+**Revival trigger:** either (a) igraph (or another backend) blows the metric-kwarg block past readable on the matrix `from_*` signatures, OR (b) users ask for a reusable typed config. If revived: add `GraphMetricsSpec` and deprecate the redundant params over a two-version window (per the `hive_plot_n_axes` 0.26→0.28 deprecation precedent), deciding spec-only-vs-keep-a-shorthand at that point with the api-critic. The likely right end-state keeps `node_graph_metrics` / `edge_graph_metrics` as a shorthand alongside the spec so the simple one-liner case survives.
+
+### Closure-reconcile note for the ADR (2026-06-18): as-shipped metric catalog
+
+For the combined NetworkX ADR writer: the as-shipped metric catalog is **~43 metrics (35 node + 8 edge)** plus the `graph_metric_backend` dispatch system, NOT the curated 12-metric snapshot this plan locked at planning time. Verified against the shipped registries: `GRAPH_NODE_METRICS` has 35 entries and `GRAPH_EDGE_METRICS` has 8 entries in `src/hiveplotlib/graph_features/__init__.py`. The expansion landed via the sibling plans (`networkx-metric-expansion-and-backend-refactor.md` for the Tier 1/Tier 2 additions and the `graph_features/networkx/` subpackage; `graph-metric-backend-dispatch.md` for the backend dispatch seam). The ADR should describe the catalog and dispatch system as-shipped, not the 12-metric starter set.
 

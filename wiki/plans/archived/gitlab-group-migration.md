@@ -220,7 +220,7 @@ both per Amendment 6.
 
 **Status:** done (Amendment 7 — branch-46 working tree, uncommitted)
 **Files:** `pyproject.toml`, `src/hiveplotlib/hiveplot.py`, `src/hiveplotlib/graph_features/__init__.py`, `src/hiveplotlib/datasets/international_trade.py`, `runners/make_trade_network_dataset.py`
-**Done when:**
+**Done when:** — ✅ **all in-repo done-whens verified at v0.28 closure (2026-06-18).** `pyproject.toml` Source URL on the new namespace and author email `gary.koplik@gmail.com`; `hiveplot.py` and the two blob URLs migrated; the `graph_features/__init__.py:642` `/-/issues` URL was already gone (no-op, Amendment 7); `make test` green (no `geomdata` test assertions). The closure grep confirms zero stray `geomdata` in these files.
 - Every `gitlab.com/geomdata/hiveplotlib` in these files → `gitlab.com/hiveplotlib/hiveplotlib`.
 - `pyproject.toml:12` author email → `gary.koplik@gmail.com` (resolved). **Idempotent
   (Amendment 1):** if the email is already `gary.koplik@gmail.com` (the JOSS worktree
@@ -244,7 +244,7 @@ Before / after (representative):
 
 **Status:** done (Amendment 7 — branch-46 working tree, uncommitted)
 **Files:** `README.md`, `docs/source/README.md`, `docs/source/conf.py`, `docs/source/roadmap.rst`, `docs/source/404.rst`, `docs/source/_templates/footer.html`
-**Done when:**
+**Done when:** — ✅ **all in-repo done-whens verified at v0.28 closure (2026-06-18).** Six badge image URLs + click-through links on the new namespace in both `README.md` and its mirror; `conf.py` icon-link and the `roadmap.rst` / `404.rst` work_items links migrated; GDA footer block removed; the dead `www.hiveplot.com` → `https://hiveplot.com` fix (Amendment 5) applied in both READMEs. `make docs` clean and `make linkcheck` resolved the migrated URLs locally (the move is live, so the redirect-gate note no longer blocks; per the Implementation log Gary ran both locally); badge images return 200 from the new path.
 - Every `gitlab.com/geomdata/hiveplotlib` (badge image URLs, click-through links, the
   conf.py GitLab icon-link, `/-/work_items` links) → new namespace, in both
   `README.md` and its `docs/source/README.md` mirror (keep them identical).
@@ -275,6 +275,7 @@ the `.gitlab/` directory is GitLab convention (Holdouts), not the old group name
 
 **Status:** done — original URLs-only scope superseded by the wholesale rewrite (Amendment 7 — branch-46 working tree, uncommitted)
 **Files:** `CONTRIBUTING.md`
+**✅ verified at v0.28 closure (2026-06-18):** `CONTRIBUTING.md` is the JOSS-worktree single-maintainer-governance content (Gary Koplik named, GDA developer-restriction removed), then voice-tuned and given an issue-first numbered flow + fork-submission section per the Implementation log; the new-namespace URLs are carried in via the replacement, with `/-/issues` corrected to the non-deprecated `/-/work_items` form and the `Makefike` typo fixed. The closure grep confirms zero `Geometric Data Analytics` / `geomdata` / `Makefike` in the file.
 **Scope change (Amendment 6, 2026-06-16):** the original WS-3 (migrate the two `/-/work_items`
 Issue Tracker URLs only, leave the GDA-developer-policy prose to JOSS) is **superseded**. WS-3 now
 replaces `CONTRIBUTING.md` wholesale with the verified JOSS-worktree version
@@ -296,7 +297,7 @@ text adaptations, distinct from WS-2's docs-config sweep.)
 
 **Status:** done (Amendment 7 — branch-46 working tree, uncommitted)
 **Files:** `examples/hive_plots_more_than_three_groups.ipynb`, `examples/introduction_to_hive_plots.ipynb` (Amendment 5), `docs/source/blog/v0.27.0_speedups.ipynb`
-**Done when:**
+**Done when:** — ✅ **all in-repo done-whens verified at v0.28 closure (2026-06-18).** The runner-link prose and the live `gpd.read_file()` URL in `hive_plots_more_than_three_groups.ipynb` migrated (the new-namespace fetch verified HTTP 200, so the redirect-gate is satisfied); the `v0.27.0_speedups.ipynb` work_items link migrated; the `introduction_to_hive_plots.ipynb` `hiveplot.com` image + homepage link fixed (Amendment 5). `make test-nb` ran the notebook end-to-end against the new URL with no fetch error (per the Implementation log). Edits confined to `examples/` + `docs/source/blog/`. The two remaining `geomdata` hits in `.ipynb_checkpoints/` are regenerable autosave scratch, not shipped artifacts.
 - The prose runner-link and the **live `gpd.read_file()` URL** in
   `hive_plots_more_than_three_groups.ipynb` → new namespace.
 - The `/-/work_items` prose link in the `v0.27.0_speedups.ipynb` blog notebook → new namespace.
@@ -318,6 +319,7 @@ text adaptations, distinct from WS-2's docs-config sweep.)
 
 **Status:** done (Amendment 7 — branch-46 working tree, uncommitted)
 **Files:** `LICENSE`, `docs/source/conf.py`
+**✅ verified at v0.28 closure (2026-06-18):** `LICENSE:1` = `Copyright (c) 2020 - 2026, Gary Koplik` and `LICENSE:14` clause = `Neither the name of Gary Koplik` (both byte-match the JOSS worktree); `docs/source/conf.py:23` = `copyright = f"2020 - {Timestamp.now().year}, Gary Koplik"  # noqa: A001`. The closure grep confirms zero `Geometric Data Analytics` / `geomdata` in either file; `make docs` clean.
 **Done when:** see Amendment 6 for the full done-when. In brief: `LICENSE:1` →
 `Copyright (c) 2020 - 2026, Gary Koplik`; `LICENSE:14` clause entity → `Gary Koplik` (both match
 the verified JOSS-worktree `LICENSE`); `docs/source/conf.py:23` f-string entity → `Gary Koplik`,
@@ -953,6 +955,58 @@ deferred items; the `releaser.py` "GDA-Cookiecutter" comment Holdout is unchange
 (rewritten for the wholesale replacement), the Group-B audit rows for `LICENSE:1,14` and
 `CONTRIBUTING.md:5` (re-pointed from deferred-to-JOSS to in-scope here), and the Amendment 1 item-3
 cross-reference (annotated superseded). WS-1, WS-2, WS-4, and the runbook are unaffected.
+
+### Amendment 8 (Record-keeping / closure): in-repo done-whens ticked, runbook tail is PENDING-RELEASE-ACTION, plan CLOSEABLE-AFTER-RELEASE — 2026-06-18
+
+**Closure reconciliation (record-keeping, no scope change).** A v0.28 closure pass (read-only
+audit of the branch-46 working tree). No workstream added or removed, no done-when changed in
+substance, no API surface. It records that **every in-repo done-when has shipped and is verified**,
+and isolates the only remaining work as Gary's release actions, not a code gap. Triggered by a
+user closure ask (rule 14: closing out a done-when set ahead of archiving), not a critic finding.
+
+**In-repo work verified shipped (✅ ticks added to WS-1..5 above).** The closure grep over the
+shipped tracked tree (excluding `.venv/`, generated `docs/source/notebooks/` + `gallery_examples/`,
+the `public/` build dir, `.ipynb_checkpoints/` autosave, and the `wiki/` submodule) confirms:
+- Every in-repo `geomdata/hiveplotlib` URL / badge / click-through link migrated to the new
+  namespace (WS-1, WS-2, WS-4); `LICENSE` + `docs/source/conf.py` copyright now read "Gary Koplik"
+  (WS-5); `CONTRIBUTING.md` is the single-maintainer governance rewrite (WS-3, per Amendment 6).
+- **Zero stray `geomdata` / `Geometric Data Analytics` references remain except the two intentional
+  `CHANGELOG.rst` migration-note lines** (`CHANGELOG.rst:193-194`: the `geomdata` group-name mention
+  and the `geomdata/hiveplotlib` old-links mention inside the repo-move note). Those two lines are
+  **intentional and left as-is** (the migration note's whole point is to name where the repo moved
+  *from*). The `public/changelog.html` and `.ipynb_checkpoints/` hits are generated/autosave
+  artifacts, not shipped source.
+
+**Runbook tail is PENDING-RELEASE-ACTION (Gary's, not a code gap).** Runbook steps 8–11 (Amendment
+4's order) remain, and they are **release actions the maintainer performs**, not missing
+implementation:
+- **Step 8** — commit branch-46 and get **green CI in the new `hiveplotlib/hiveplotlib` namespace**
+  (delta-tower runners are live per Amendment 5).
+- **Step 9** — finish the branch-46 review and **merge 46 + the sweeps to master as v0.28**.
+- **Step 10** — trigger `perform_release` (manual) → **v0.28 tag → PyPI + RTD publish** through the
+  pipeline (intended path; local `twine` / `rtd_deploy.py` is emergency-only break-glass per
+  Amendment 2 item 5).
+- **Step 11** — the **external-links pass** Gary controls (CV, personal website, X "moved" note,
+  affiliated repos — runbook section 6).
+
+The release stays **hard-gated on the full pipeline green** (Amendment 2 item 3's gate, position
+per Amendment 3); there is no rollback (fix-forward only). None of this is harness-dispatchable
+work — the sweeps are done; what's left is the maintainer's commit/CI/merge/release/links sequence.
+
+**CLOSEABLE-AFTER-RELEASE.** The plan's automated, in-repo deliverable (WS-1..5) is **complete and
+verified**. The plan is **closeable once the runbook tail (steps 8–11) is performed** — i.e. once
+v0.28 is merged, tagged, and published and the external links are updated. Archive (move to
+`wiki/wiki/plans/archived/`) after release, not before, since the runbook tail is still live; until
+then it stays in the active plans dir as in-flight-on-the-release-action. (Research Liaison proposes
+the archive move; the maintainer confirms and performs it. This plan is also flagged a strong ADR
+candidate — see "Prior ADRs / design docs".)
+
+**Done-whens touched:** none added/removed/changed in substance; ✅ verification ticks added to
+WS-1..5's done-when blocks (recording the closure audit), and this entry isolates the runbook tail
+as the only remaining (release) work.
+
+*Sections edited:* WS-1..5 "Done when" blocks (✅ closure-verification ticks); "Plan amendments"
+(this entry).
 
 ### Amendment 7 (Record-keeping): WS-1..5 shipped onto the branch-46 working tree; log resolved, statuses flipped — 2026-06-16
 
