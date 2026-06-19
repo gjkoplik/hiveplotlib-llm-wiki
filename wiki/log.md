@@ -1,7 +1,7 @@
 ---
 title: Wiki Log
 type: log
-updated: 2026-06-12
+updated: 2026-06-19
 ---
 
 # Hive Plot Research Wiki — Log
@@ -115,3 +115,9 @@ Lint observations (not fixed, recorded for a future pass): `sources/hiveplotlib-
 Web scan for new external hive plot work (past week): nothing new surfaced. arXiv and general search return only the known prior art ([[nollenburg-2023-computing-hive-plots|Computing Hive Plots]] (arXiv 2309.02273), the [[p2cp|P2CP-revisited]] paper (arXiv 2109.10193), [[perez-2021-hype|HyPE]], and hiveplotlib's own docs). The June-2026 nxviz revival is already filed in `analyses/nxviz-comparison.md`. No 2026 hive plot papers or new tools found.
 
 Pages updated: 2 (`overview.md`, `index.md` — example count 49 to 50, `updated` dates bumped). No pages created.
+
+## [2026-06-18] adr | ADR 0001 filed — NetworkX integration (v0.28, GitLab #46)
+2026-06-18: ADR 0001 filed — the combined v0.28 NetworkX close-out, distilling the four working plans (`i-want-to-plan-optimized-hoare`, `networkx-metric-expansion-and-backend-refactor`, `graph-metric-backend-dispatch`, `graph-metric-conflict-validation`) into one record: unified `graph=` input (the `from_networkx` classmethod declined), the `graph_features` package (35 node + 8 edge metrics), `compute_graph_metrics`, `to_networkx` + JSON export, the `graph_metric_backend` dispatch system, and the `@requires_graph_type` conflict-validation layer; Deferred / Declined section captures the `from_variable_sweep` validator gap, the four future-igraph questions (GPL posture gating), and the declined `GraphMetricsSpec` consolidation with its revival trigger. Pages created: 1 (`adr/0001-networkx-integration.md`). Pages updated: 3 (`index.md` — new ADR section; `entities/hiveplotlib.md` — v0.28 marked shipped + ADR cross-reference; `log.md`).
+
+## [2026-06-19] research | Hive plots for knowledge graphs
+Open-ended, maintainer-directed exploration of whether hive plots and [[hiveplotlib]] can visualize knowledge graphs. Grounded in a fresh source read (`node.py`, `edges.py`, `hiveplot.py`, `converters.py`) plus web research (Heterogeneous Information Network / metapath literature, Hetionet, the KG-visualization survey literature, RDF vs property graphs). Core synthesis: a KG is too heterogeneous to be one hive plot, but a hive plot is a strong renderer for a scoped, [[metapath]]-shaped slice; the right unit is "one hive plot per question," which fixes the axes (a metapath) and the edges (chosen predicates). hiveplotlib already provides the primitives (entity type as partition, typed edge tags, `HivePlotMatrix.from_tags()` panels, repeat axes for subject/object duality, directed and multigraph edges), so the gaps are ergonomic rather than fundamental: ingestion converters for RDF (`rdflib`) and property graphs (Neo4j), a metapath constructor, schema/aggregation helpers, predicate-faceting ergonomics, and a role-partition convenience. Filed a seven-pattern taxonomy and a Hetionet worked example. Pages created: 3 (`concepts/knowledge-graph.md`, `concepts/metapath.md`, `analyses/hive-plots-for-knowledge-graphs.md`). Pages updated: 2 (`index.md`, `log.md`). Suggested next sources to ingest: an HIN/metapath survey (e.g. Sun & Han) and the Hetionet / Himmelstein drug-repurposing paper.
