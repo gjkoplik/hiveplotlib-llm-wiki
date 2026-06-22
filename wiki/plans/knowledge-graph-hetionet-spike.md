@@ -429,6 +429,32 @@ fundamental-flaw (b). Record per-slice node/edge counts here for the scale plans
 Any API a finding suggests is labeled not-for-implementation.
 ```
 
+### W1 evidence (feasibility complete, 2026-06-19)
+
+Slice + acquisition stats are in the Implementation log below. W1's
+runner-authoring already yields gap-1 evidence and one emergent finding:
+
+- **Gap 1 (ingestion) — partial verdict, bucket (a) easy-adds; W2 still pending.**
+  Mapping Hetionet's native form to hiveplotlib-ready nodes/edges was moderate,
+  mostly-mechanical. Smooth: node `kind` drops onto a partition variable; the SIF
+  `metaedge` → predicate-as-column mapping is exactly where ADR 0001 pays off; the
+  20 parallel `(from,to)` pairs survive for free via predicate-as-column (0 exact
+  duplicate triples). Friction a helper would remove: (i) the edge table is all
+  opaque `Kind::localID` strings, so edge-level labeling needs a join back to the
+  node table (a join/label helper); (ii) the Git-LFS footgun (the raw URL silently
+  returns a 133-byte pointer, not the data) bites anyone re-pointing a loader at
+  LFS-backed graphs; (iii) a hand-maintained metaedge→verb map is a small
+  maintenance smell. The first-hand, in-notebook native-ingestion verdict is W2's.
+- **Emergent finding — mixed per-edge directedness — bucket (b) FUNDAMENTAL (not
+  one of the original 6 gaps).** The slice carries directed (`regulates` / Gr>G,
+  650 edges) and undirected (`binds`, `associates`, ...) relationships in one edge
+  set, flagged only by a boolean `directed` column. hiveplotlib's `Edges` /
+  `HivePlot` treat every edge uniformly (from→to ordering is just storage order),
+  with no first-class notion of per-edge directed-vs-undirected, so the distinction
+  is carried only as metadata and hand-interpreted at draw time. This is a
+  data-model / contract gap (a real change, not a helper). W5 probes whether it is
+  expressible in a view at all.
+
 - **Gap 1 — Ingestion converters (RDF / property graphs).** Verdict: _pending_
   (evidence from W2's dedicated native-form ingestion probe + W1 runner-authoring
   friction + W8 #7 scoping). The analysis calls this the biggest adoption lever;
@@ -531,3 +557,28 @@ None — exploration, no replace-and-sweep audit applies.
 
 Append-only. One line per workstream as it completes (record per-slice edge
 counts here too, for the scale plans).
+
+### W1 (feasibility) — complete, 2026-06-19
+
+Runner + reader + vendored slice on branch `worktree-kg-hetionet-spike`
+(uncommitted; maintainer commits). Files: `runners/make_hetionet_dataset.py`;
+reader `src/hiveplotlib/datasets/hetionet.py`
+(`hetionet_cbgad_data(path=None) -> (data, metadata)`,
+`data = {"nodes": df[id,name,kind], "edges": df[from,to,metaedge,relationship,directed]}`);
+vendored slice `src/hiveplotlib/datasets/hetionet/{nodes,edges,metadata}`;
+`datasets/__init__.py` star-import; `MANIFEST.in`; reader tests in
+`tests/datasets_test.py`. Reader is pandas-only (no networkx import), so the
+star-import stays import-safe without the `[networkx]` extra.
+
+Slice (CbGaD bridge, capped at the top-100 bridge genes by combined degree, ties
+broken by id ascending): **1,272 nodes** (Compound 1,069 / Disease 103 / Gene 100);
+**5,942 edges** (binds/CbG 4,435 · associates/DaG 712 · regulates/Gr>G 650 directed
+· upregulates/DuG 90 · downregulates/DdG 55). 320 KB on disk; renders without
+datashader. Uncapped the slice was ~22.9k edges across 1,364 bridge genes.
+Acquisition: nodes via `raw.githubusercontent.com/hetio/hetionet/.../nodes.tsv`;
+edges via the LFS media endpoint
+`media.githubusercontent.com/media/hetio/hetionet/.../edges.sif.gz` (the plain raw
+URL returns only a 133-byte LFS pointer). Coverage number not auto-verified in the
+minimal worktree venv (a numpy/pytest-cov crash, not a code issue); hand-traced
+100%, authoritative run deferred to qa-engineer in the full env. No CHANGELOG entry
+(spike; v0.28 already released).
