@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-06-18
+updated: 2026-06-20
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -55,6 +55,7 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 - 50 example Jupyter notebooks (four new v0.28 gallery pages: Computing Graph Metrics, Graph Metric Backends, Exporting to NetworkX, Exporting to JSON)
 - 100% test coverage
 - Built-in datasets (toy plots, international trade data)
+- Agent-first docs: a hand-curated `llms.txt` (llmstxt.org shape) is served at the docs site root on Read the Docs (via `html_extra_path`), ranking the conceptual entry points first, then the API reference, then the gallery, so an agent pointed at the docs finds the load-bearing pages before the gallery breadth. Docs-infrastructure only, no Python API change. Shipped 2026-06-19 (the `llms-full.txt` full-text concatenation was scoped out, with a revival trigger).
 
 ## Ecosystem
 
