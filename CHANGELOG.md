@@ -9,6 +9,10 @@ the agent harness used to develop Hiveplotlib.
 
 Dated versioning, most recent release first.
 
+## 2026.06.22
+
+Checkpointing after first ADR released having shipped Hiveplotlib v0.28.
+
 ## 2026.05.10
 
 The first pass - an LLM-curated knowledge base over hand-curated raw sources, with `entities/`, `concepts/`, `analyses/`, and `sources/` categories. Schema documented in [`CLAUDE.md`](CLAUDE.md).
