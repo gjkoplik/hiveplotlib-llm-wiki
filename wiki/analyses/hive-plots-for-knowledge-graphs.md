@@ -2,7 +2,7 @@
 title: Hive Plots for Knowledge Graphs
 type: analysis
 created: 2026-06-19
-updated: 2026-06-19
+updated: 2026-06-25
 sources: [krzywinski-2012, perez-2021-hype, nollenburg-2023-computing-hive-plots]
 tags: [knowledge-graph, hive-plot, heterogeneous-network, metapath, hiveplotlib]
 ---
@@ -131,3 +131,4 @@ Drawing an arbitrary dense schema on many axes is not worth pursuing. The theory
 - [[perez-2021-hype]] — panels of hive plots as a precedent
 - [[nollenburg-2023-computing-hive-plots]] — why dense multi-axis layout is hard
 - [[applications-bioinformatics]] — the natural first domain (Hetionet)
+- [[examples-and-applications]] — catalog of hiveplotlib examples and application explorations

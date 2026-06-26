@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-06-20
+updated: 2026-06-25
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -70,7 +70,10 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 
 ## Research Directions
 
+See [[examples-and-applications]] for the running catalog of worked examples and application explorations (shipped notebooks through throwaway prototypes).
+
 - [[gnn-heterogeneity-hive-plots]] — Using HivePlotMatrix to diagnose GNN classification heterogeneity. The integration pathway is now even more direct: `HivePlot(graph=...)` / `HivePlotMatrix.from_*(graph=...)` ingest a NetworkX graph straight from PyTorch Geometric, and `node_graph_metrics` / `edge_graph_metrics` compute the structural sweep variables (degree, centrality, community labels, etc.) in one step, replacing the old manual `pd.DataFrame(G.degree, ...) + nodes.data.merge(...)` pattern. See [[graph-features]] for the available structural sweep variables.
+- [[nn-training-dynamics-p2cp-exploration]] — Exploration (throwaway `hiveplotlib-nn-viz` prototype, not a library feature): a tiny MLP learning MNIST rendered as a [[p2cp|P2CP]] movie over training. Surfaced reusable usage notes (manual plots via `BaseHivePlot`; `datashade_edges_mpl` is edges-only; spread the aggregate then shade) and the finding that an MLP's discriminative structure reads in output space, not its distributed hidden code.
 
 ## See Also
 
@@ -84,3 +87,4 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 - [[differential-hive-plot]] — Not yet implemented; potential feature
 - [[p2cp]] — Polar Parallel Coordinates
 - [[karate-club-walkthrough]] — Step-by-step example walkthrough
+- [[nn-training-dynamics-p2cp-exploration]] — Exploration: watching a neural network learn via P2CP

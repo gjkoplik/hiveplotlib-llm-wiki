@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-06-19
+updated: 2026-06-25
 ---
 
 # Hive Plot Research Wiki — Index
@@ -57,6 +57,7 @@ updated: 2026-06-19
 
 ## Analyses
 
+- [[examples-and-applications|Examples & Applications Catalog]] — **Hub.** Living catalog of exploratory examples and applications of hiveplotlib (NN-viz, knowledge graphs, GNN heterogeneity, Karate Club)
 - [[karate-club-walkthrough]] — Step-by-step hiveplotlib walkthrough using Zachary's Karate Club (1 source)
 - [[gnn-heterogeneity-hive-plots]] — Research proposal: HivePlotMatrix for GNN classification diagnostics, node- and edge-level (7 sources)
 - [[cora-prototype-plan]] — Implementation plan for Cora GNN evaluation prototype (3 sources)
@@ -64,3 +65,4 @@ updated: 2026-06-19
 - [[hiveplotlib-research-impact]] — Citations, downstream uses, and PyPI download stats for the JOSS Research impact statement; thin-but-real (1 source — web research)
 - [[joss-ai-disclosure-precedents]] — Accepted-JOSS-paper AI-disclosure examples by posture, to calibrate the paper's mandatory disclosure (1 source — web research)
 - [[hive-plots-for-knowledge-graphs]] — Can hive plots render KGs? Reframes them as scoped metapath views; a seven-pattern taxonomy, a Hetionet example, what hiveplotlib supports today, and the ergonomic gaps (3 sources + web research)
+- [[nn-training-dynamics-p2cp-exploration]] — Throwaway prototype watching a tiny MLP learn MNIST as a P2CP movie over training; reusable hiveplotlib usage notes (BaseHivePlot, datashade spread-then-shade), the output-vs-hidden-space finding, and the Grand-Tour-complementary novelty framing (1 source)

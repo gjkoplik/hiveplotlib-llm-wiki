@@ -2,7 +2,7 @@
 title: "GNN Heterogeneity Diagnosis via Hive Plot Matrices"
 type: analysis
 created: 2026-04-13
-updated: 2026-06-10
+updated: 2026-06-25
 sources: [krzywinski-2012, hiveplotlib-python-repo, nollenburg-2023, ma-2021-subgroup-fairness, kipf-2017-gcn, subramonian-2024-degree-bias, gnnfairviz-2025]
 tags: [gnn-evaluation, hive-plot-matrix, heterogeneity, research-proposal, machine-learning, edge-heterogeneity]
 ---
@@ -195,3 +195,4 @@ No new hiveplotlib features are required — this is an *application* of existin
 - [[subramonian-2024-degree-bias]] — Survey confirming degree bias is widespread but poorly understood
 - [[gnnfairviz-2025]] — Closest visual analytics work (different framing: demographic fairness)
 - [[applications-cybersecurity]] — Parallel: cybersecurity uses hive plots as ML features; this proposal uses hive plots to *evaluate* ML
+- [[examples-and-applications]] — catalog of hiveplotlib examples and application explorations

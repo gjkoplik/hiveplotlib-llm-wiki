@@ -2,7 +2,7 @@
 title: "Walkthrough: Zachary's Karate Club Hive Plot"
 type: analysis
 created: 2026-04-06
-updated: 2026-04-06
+updated: 2026-06-25
 sources: [hiveplotlib-python-repo]
 tags: [walkthrough, karate-club, hiveplotlib, social-network]
 ---
@@ -125,3 +125,4 @@ fig, ax = hp.plot()
 - [[hive-plot]] — The visualization method
 - [[node-assignment]] — Partitioning strategy
 - [[edge-rendering]] — Edge styling
+- [[examples-and-applications]] — catalog of hiveplotlib examples and application explorations
