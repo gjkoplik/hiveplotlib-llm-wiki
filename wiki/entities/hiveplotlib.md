@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-06-25
+updated: 2026-06-27
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -17,7 +17,7 @@ hiveplotlib is a Python library for generating and visualizing static [[hive-plo
 
 - **Current version:** 0.28.0 (released 2026-06-18), focused on streamlined NetworkX integration (see "NetworkX integration" below; the design decisions are distilled in [[0001-networkx-integration|ADR 0001]]).
 - **Python support:** 3.10+
-- **Repository:** GitLab (private)
+- **Repository:** GitLab — `gitlab.com/hiveplotlib` group (migrated to its own group in the v0.28 cycle; visibility not re-verified from the working tree)
 - **Install:** `pip install hiveplotlib`
 - **License:** see repo
 
@@ -36,6 +36,8 @@ hiveplotlib is a Python library for generating and visualizing static [[hive-plo
 
 ### Visualization Backends
 Six backends: matplotlib (default), bokeh, holoviews-bokeh, holoviews-matplotlib, plotly, datashader.
+
+On `master` (post-0.28, unreleased), the `hiveplotlib[holoviews]` extra now requires `holoviews>=1.23` (was `>=1.15`). That release ships the upstream fix for [holoviews #6469](https://github.com/holoviz/holoviews/issues/6469), which let the library drop an internal workaround that had been forcing the single-color case on the holoviews-bokeh back end through `cmap`. Behavior of single-color edges is unchanged; the version floor moves and the hack is gone (GitLab #30, merged 2026-06-26).
 
 ### NetworkX integration (v0.28, shipped)
 
