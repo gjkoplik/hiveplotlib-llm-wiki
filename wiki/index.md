@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-06-25
+updated: 2026-07-03
 ---
 
 # Hive Plot Research Wiki — Index
@@ -13,6 +13,7 @@ updated: 2026-06-25
 ## Architecture Decision Records
 
 - [[0001-networkx-integration|ADR 0001 — NetworkX integration]] — v0.28 NetworkX story: unified `graph=` input (not a `from_networkx` classmethod), the `graph_features` package (~43 metrics), `compute_graph_metrics`, `to_networkx` + JSON export, `graph_metric_backend` dispatch, and the `@requires_graph_type` conflict-validation layer. Accepted.
+- [[0002-performance-regression-harness|ADR 0002 — Performance regression + equivalence harness]] — the gate for the scaling milestone: pytest relative same-run ratio gates + ASV capture-at-merge history (hybrid), the dtype-aware equivalence wall (sound by construction), two-tier peak-RSS measurement (kernel `getrusage`, `tracemalloc` rejected; tier 2 provisional), pinned tiny/small/medium/large scenarios, canary-armed dormant gates, and the `perf_harness` CI-signal split. Accepted.
 
 ## Sources
 

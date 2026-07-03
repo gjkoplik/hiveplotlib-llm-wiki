@@ -2,7 +2,7 @@
 title: Bézier Curves
 type: concept
 created: 2026-04-06
-updated: 2026-04-06
+updated: 2026-07-03
 sources: [hiveplotlib-python-repo]
 tags: [bezier-curves, edge-rendering, implementation]
 ---
@@ -34,3 +34,4 @@ Edge arrays stored as float32 for memory efficiency.
 - [[edge-rendering]] — How edges use these curves
 - [[hiveplotlib]] — Implementation
 - [[hive-plot]] — The visualization method
+- [[0002-performance-regression-harness|ADR 0002]] — The equivalence wall that compares this kernel's output (curve arrays and their rasterization) across implementation paths

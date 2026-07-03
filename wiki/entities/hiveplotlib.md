@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-06-27
+updated: 2026-07-03
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -49,6 +49,15 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 - **Backend dispatch for graph metrics:** a `graph_metric_backend` parameter on `compute_graph_metrics()`, `HivePlot`, and all five `HivePlotMatrix` surfaces (including the `from_*` classmethods) routes metric computation through NetworkX's backend dispatch system (nx-parallel tested in CI; nx-cugraph known-good but GPU-only). Unknown or uninstalled backend names raise `InvalidGraphMetricBackendError` up front; metrics a backend does not implement fall back to default NetworkX with an INFO log line (the codebase's first use of stdlib logging). A per-metric reserved `"backend"` key in the metric-kwargs dicts overrides the global value, with explicit `None` as the per-metric opt-out; precedence runs per-metric > per-call > stored construction value, mirroring `graph_directed`. This is orthogonal to the future igraph wrapper-library axis (see [[graph-features]] for the three distinct "backend" senses). New gallery notebook: Graph Metric Backends.
 - Removed the long-deprecated `hive_plot_n_axes()` (folded into `HivePlot` back in v0.26).
 
+### Performance regression + equivalence harness (shipped 2026-07-03, dev/CI infrastructure)
+
+In place as of 2026-07-03 (GitLab #52; no user-facing API change, not tied to a release): the gate for the upcoming scaling-to-larger-networks milestone. Every scaling workstream must prove "measurably faster (or no worse), output-equivalent to the proven single-shot datashader path, no regression on small graphs" through it before claiming the win. Design decisions distilled in [[0002-performance-regression-harness|ADR 0002]]; key facts:
+
+- **Pytest ratio gates + ASV history hybrid** — per-MR CI pass/fail is pytest asserting relative, same-run ratios (absolute timings never gate, so the setup survives CI-runner migration by construction); ASV owns timing/memory history and the rolling baseline, its native results JSON committed as-is.
+- **Equivalence wall** — dtype-aware curve + raster comparison against the proven path, sound by construction (identity must pass, perturbation must fail, comparing-nothing raises).
+- **Two-tier peak-RSS measurement** — tier 1 exact kernel high-water mark (child-reported `getrusage(RUSAGE_SELF)` via a two-level subprocess; `tracemalloc` rejected as blind to numba/numpy C allocations); tier 2 psutil-sampled process-tree helper, provisional pending the scaling chain's instrument selection.
+- **Capture-at-merge on the designated machine** — ASV history written only by maintainer-local runs (machine tag `ringtail`) at workstream and dependency-bump merges; CI never writes history.
+
 ### Key Features
 - [[edge-rendering|Edge kwarg hierarchy]] for layered styling
 - [[bezier-curves|Bézier curve]] generation with numba acceleration
@@ -66,6 +75,7 @@ v0.28.0 makes a NetworkX graph a first-class input and output, removing the manu
 
 ## Development Priorities
 
+- **Scaling to dramatically larger networks (10M+ edges).** The five-workstream scaling super-plan (membership storage → chunked rasterization → fused build → narwhals input boundary → Dask/GPU passthrough) is the next milestone, now unblocked: the performance regression + equivalence harness ([[0002-performance-regression-harness|ADR 0002]]) is in place as the gate every workstream must clear.
 - Additional backends and interactivity for HivePlotMatrix (currently matplotlib + datashader only). The new public `HivePlotMatrix.backend` read-only property makes the current backend inspectable without reaching for the private attribute.
 - Future graph-feature backends. The v0.28 metric wrappers live under a `graph_features/networkx/` subpackage; the roadmap calls for a sibling `igraph` backend (notably for community detection) to slot in alongside it. See [[graph-features]].
 - Exploring GNN evaluation applications ([[gnn-heterogeneity-hive-plots]])
@@ -86,6 +96,7 @@ See [[examples-and-applications]] for the running catalog of worked examples and
 - [[hive-plot-matrix]] — Comparative visualization
 - [[graph-features]] — NetworkX node/edge metric wrappers (new in v0.28)
 - [[0001-networkx-integration|ADR 0001 — NetworkX integration]] — Binding design record for the v0.28 NetworkX story
+- [[0002-performance-regression-harness|ADR 0002 — Performance regression + equivalence harness]] — Binding design record for the scaling milestone's gate
 - [[differential-hive-plot]] — Not yet implemented; potential feature
 - [[p2cp]] — Polar Parallel Coordinates
 - [[karate-club-walkthrough]] — Step-by-step example walkthrough
