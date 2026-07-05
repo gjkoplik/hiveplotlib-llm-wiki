@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-07-03
+updated: 2026-07-04
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -86,6 +86,8 @@ See [[examples-and-applications]] for the running catalog of worked examples and
 
 - [[gnn-heterogeneity-hive-plots]] — Using HivePlotMatrix to diagnose GNN classification heterogeneity. The integration pathway is now even more direct: `HivePlot(graph=...)` / `HivePlotMatrix.from_*(graph=...)` ingest a NetworkX graph straight from PyTorch Geometric, and `node_graph_metrics` / `edge_graph_metrics` compute the structural sweep variables (degree, centrality, community labels, etc.) in one step, replacing the old manual `pd.DataFrame(G.degree, ...) + nodes.data.merge(...)` pattern. See [[graph-features]] for the available structural sweep variables.
 - [[nn-training-dynamics-p2cp-exploration]] — Exploration (throwaway `hiveplotlib-nn-viz` prototype, not a library feature): a tiny MLP learning MNIST rendered as a [[p2cp|P2CP]] movie over training. Surfaced reusable usage notes (manual plots via `BaseHivePlot`; `datashade_edges_mpl` is edges-only; spread the aggregate then shade) and the finding that an MLP's discriminative structure reads in output space, not its distributed hidden code.
+- [[soccer-passing-hive-plots]] — Exploration (throwaway `hiveplotlib-futbol` prototype, not a library feature): soccer passing networks rendered with a fixed layout (pitch thirds as axes, pass endpoints as nodes) so two teams compare apples-to-apples, the documented fix for the average-position hairball. Exercises datashaded [[hive-plot-matrix|HivePlotMatrix]] comparisons and value-weighted edges ([[expected-threat|xT]]). Surfaced the fixed-bounds axis-pinning lesson (pin `axis_kwargs`, do not let the default infer per-data bounds, or cross-team comparability breaks) and the count-vs-column-reduction datashader semantics.
+- [[hiveplotlib-bioinformatics-examples]] — Exploration (public `hiveplotlib-bioinformatics-examples` repo, not a library feature): real biological-network hive plots in hiveplotlib's strongest adoption domain ([[applications-bioinformatics]]). A **C. elegans connectome** example (sensory / interneuron / motor axes) and an **E. coli RegulonDB** signed regulatory example, both built to publishable quality. Honest finding: both are credible real-data demonstrations, but neither is a "hero" figure (real networks control for nothing, so comparisons collapse to density); the instant-comparison hero is the engineered [[same-stats-different-graphs|Datasaurus-for-networks]] work, which these corroborate. Exercises `HivePlot(graph=...)` + `node_graph_metrics`, multi-tag `Edges` for semantic edge coloring, the base [[hive-plot-matrix|HivePlotMatrix]] `unify_axes=True` two-panel comparison with shared-metric node positions, `repeat_axes` for intra-partition edges, and an edge-tag emulation of the roadmapped [[differential-hive-plot]] feature.
 
 ## See Also
 
@@ -101,3 +103,5 @@ See [[examples-and-applications]] for the running catalog of worked examples and
 - [[p2cp]] — Polar Parallel Coordinates
 - [[karate-club-walkthrough]] — Step-by-step example walkthrough
 - [[nn-training-dynamics-p2cp-exploration]] — Exploration: watching a neural network learn via P2CP
+- [[soccer-passing-hive-plots]] — Exploration: soccer passing networks as fixed-layout hive plots
+- [[hiveplotlib-bioinformatics-examples]] — Exploration: real biological-network hive plots (C. elegans connectome, E. coli GRN)

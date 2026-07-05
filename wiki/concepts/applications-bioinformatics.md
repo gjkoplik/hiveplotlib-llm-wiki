@@ -2,7 +2,7 @@
 title: "Applications: Bioinformatics"
 type: concept
 created: 2026-04-06
-updated: 2026-04-06
+updated: 2026-07-04
 sources: [krzywinski-2012, perez-2021-hype]
 tags: [applications, bioinformatics, genomics, microbiome]
 ---
@@ -35,9 +35,23 @@ Seoane et al. (2014, *PLOS Computational Biology*) used hive plots to visualize 
 - Reproducibility is critical for scientific publication
 - Networks are often large enough that force-directed layouts fail
 
+## Worked Examples (hiveplotlib)
+
+The [[hiveplotlib-bioinformatics-examples|bioinformatics hive plot examples exploration]] builds real
+biological-network hive plots on [[hiveplotlib]] (the public `hiveplotlib-bioinformatics-examples`
+repo). It adds a **C. elegans connectome** example (sensory / interneuron / motor axes), filling the
+**neuroscience gap** this domain had left unexplored, alongside an **E. coli RegulonDB** regulatory
+example that revisits [[krzywinski-2012]]'s role-partitioned construction with signed edges. The
+exploration's honest conclusion: both are credible real-data demonstrations, but neither is a "hero"
+figure. Real biological networks control for nothing, so their comparisons collapse to density or
+reward careful study; the instant-comparison hero is the engineered
+[[same-stats-different-graphs|Datasaurus-for-networks]] work, which the real-data examples corroborate
+rather than replace.
+
 ## See Also
 
 - [[hive-plot]] — The visualization method
 - [[krzywinski-2012]] — Foundational bioinformatics examples
+- [[hiveplotlib-bioinformatics-examples]] — Worked C. elegans connectome and E. coli GRN hive plots
 - [[applications-cybersecurity]] — Another strong domain
 - [[applications-software-engineering]] — Another application domain

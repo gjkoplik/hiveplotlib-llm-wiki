@@ -2,7 +2,7 @@
 title: Overview
 type: overview
 created: 2026-04-06
-updated: 2026-06-20
+updated: 2026-07-04
 sources: [krzywinski-2012, hiveplotlib-python-repo, hiveplotlib-javascript-repo, perez-2021-hype, bostock-2012-d3-hive-plots, nollenburg-2023, krzywinski-2017-differential, ma-2021-subgroup-fairness, kipf-2017-gcn, subramonian-2024-degree-bias, gnnfairviz-2025]
 tags: [hive-plot, hiveplotlib, network-visualization]
 ---
@@ -15,7 +15,7 @@ This wiki tracks research, theory, and practice around **[[hive-plot|hive plots]
 
 Hive plots are a network visualization method introduced by [[Martin Krzywinski]] in [[krzywinski-2012|2012]]. The core insight: traditional [[force-directed-layout|force-directed layouts]] produce non-reproducible, non-quantitative "hairballs." Hive plots fix this by assigning nodes to radial axes based on meaningful structural properties ([[node-assignment]]) and drawing edges as [[bezier-curves|Bézier curves]] ([[edge-rendering]]).
 
-The method has been adopted across multiple domains — most strongly in [[applications-bioinformatics|bioinformatics]] (its origin), but also innovatively in [[applications-cybersecurity|cybersecurity]] (where hive plot images serve as ML features for DDoS detection) and [[applications-software-engineering|software engineering]] (code dependency visualization).
+The method has been adopted across multiple domains — most strongly in [[applications-bioinformatics|bioinformatics]] (its origin), but also innovatively in [[applications-cybersecurity|cybersecurity]] (where hive plot images serve as ML features for DDoS detection) and [[applications-software-engineering|software engineering]] (code dependency visualization). A running catalog of exploratory applications lives at [[examples-and-applications]]; one recent exploration, [[soccer-passing-hive-plots|soccer passing networks]], sharpens the comparability argument by fixing the layout by pitch structure (so two teams read apples-to-apples, the documented fix for average-position pass-network hairballs) and weighting edges by possession value ([[expected-threat|expected threat]]) rather than raw count.
 
 ## The Theory
 
@@ -53,6 +53,12 @@ The core idea: train a [[graph-neural-networks|GNN]] on a node classification be
 A deep reading of [[ma-2021-subgroup-fairness|Ma, Deng & Mei (NeurIPS 2021)]] confirms the theoretical foundation: they prove accuracy disparity exists across structural subgroups and identify training-set distance as the key predictor. But their analysis is purely tabular (bar charts), single-variable-at-a-time, and node-level only. A survey of the citing literature ([[subramonian-2024-degree-bias|Subramonian et al. 2024]] — 38 papers on degree bias) and the visual analytics space ([[gnnfairviz-2025|GNNFairViz]]) confirms that **no existing work** uses network visualization for structural subgroup diagnosis, and **no work at all** examines edge-level heterogeneity in GNN performance. The hive plot approach is novel on multiple axes: multi-dimensional sweep, edge-aware visualization, continuous structural gradients, and visual model cards.
 
 This direction requires no new [[hiveplotlib]] features, only application of existing `HivePlotMatrix.from_variable_sweep()` and the NetworkX integration. The v0.28 [[graph-features|graph-feature API]] (shipped 2026-06-18) makes the path nearly turnkey: a PyTorch Geometric / NetworkX graph carrying predictions ingests via `from_variable_sweep(graph=...)`, and the structural sweep variables (degree, centrality, community labels) compute in the same call through `node_graph_metrics`, retiring the old manual extract-and-merge step.
+
+### Spectral Hive Plots
+
+A second direction treats the hive plot as a **readout of a spectral decomposition**. From one spectral clustering you get all three hive-plot inputs at once: the k-way partition (the first cuts) assigns the axes, a *higher* eigenvector the partition does not use sorts nodes within each axis, and the affinity graph supplies the edges. The idea came from a chemistry-minded collaborator; a prototype lives in the `hiveplotlib-spectral` repo, written up in [[spectral-hive-plots]].
+
+A five-angle literature pass settled the novelty question: it is a **novel recombination of established parts**, not new in any single ingredient and not already assembled anywhere. Conventional hive plots never assign axes spectrally ([[krzywinski-2012]], [[perez-2021-hype|HyPE]], [[nollenburg-2023-computing-hive-plots|Nöllenburg & Wallinger]]); [[koren-2005-graph-drawing|spectral graph drawing]] uses eigenvectors as Cartesian coordinates, not radial cluster axes; eigenvector ordering is classic [[atkins-1998-spectral-seriation|spectral seriation]]. Crucially the one non-obvious move, reading within-cluster structure from a higher eigenvector, is already standard in [[nedialkova-2014-diffusion-map-md|diffusion-map molecular dynamics]], which de-risks the idea and locates the novelty in the recombination. The strongest use cases are in chemistry: MD conformational analysis (eigenvectors already carry kinetic meaning) and force-directed molecular-network tools ([[aron-2020-gnps|GNPS]], chemical space networks) that today show only one cluster family at a time.
 
 ## Open Questions and Next Steps
 
