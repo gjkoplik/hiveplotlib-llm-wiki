@@ -2,9 +2,9 @@
 title: Hive Plots for Knowledge Graphs
 type: analysis
 created: 2026-06-19
-updated: 2026-06-25
-sources: [krzywinski-2012, perez-2021-hype, nollenburg-2023-computing-hive-plots]
-tags: [knowledge-graph, hive-plot, heterogeneous-network, metapath, hiveplotlib]
+updated: 2026-07-06
+sources: [krzywinski-2012, perez-2021-hype, nollenburg-2023-computing-hive-plots, jin-2022-gnnlens, subramonian-2024-degree-bias]
+tags: [knowledge-graph, hive-plot, heterogeneous-network, metapath, hiveplotlib, link-prediction, gnn-evaluation]
 ---
 
 # Hive Plots for Knowledge Graphs
@@ -107,6 +107,23 @@ Ordered by leverage.
 4. **Predicate-faceting ergonomics.** A one-call "facet by this edge-type column" that builds the tags, plus shared legends across the resulting panels (#2).
 5. **Role-partition convenience.** Compute the source / sink / intermediate partition from edge direction (#3).
 6. **Edge filtering convenience.** A documented, first-class way to subset edges by attribute for a view, rather than manual DataFrame slicing.
+7. **Model-outcome overlays and edge styling by column.** Surfaced by the link-prediction build below. Coloring edges by a *model outcome* (TP / FN / FP) needs the same tag-bucketing boilerplate as predicate faceting (#4), but for an inferred column rather than a predicate. Two conveniences erase it: `color_edges_by="<column>"` with an automatic legend (mirroring how nodes already color by a column), and a first-class "fixed layout, swappable edge layers" object so one computed node layout carries the true-edge context in one panel and each outcome subset in the next without reconstructing the plot per panel. This generalizes #4 (facet by any edge column, not only a predicate) and pairs with the [[hiveplot-unify-axes]] plan (axis-range unification) and [[fixed-layout-comparability]] (position stability across views).
+
+## Empirical follow-up: the link-prediction error view (2026-07)
+
+The `hiveplotlib-hetionet` build, executing direction 5 of [[gnn-research-directions]], trained a GNN link predictor on the CbGaD slice and tagged held-out `associates` (Disease-Gene) candidates TP / FN / FP, then drew them on the metapath layout. What it confirmed and newly surfaced, from the implementation side:
+
+**Confirmed.** The "one hive plot per question" reframing extends cleanly to model diagnostics: the question becomes "where does the predictor err?", the axes are the metapath types, and the edges are the outcome tags. Pattern #2 (predicate facet) generalizes with no new mechanism, because a model outcome is just another categorical edge attribute, and the predicate-as-column model made the tagging a one-liner. Reusing one `NodeCollection` with a precomputed degree sort across panels gives [[fixed-layout-comparability|unified axes]] for free, which is what makes the small-multiples comparison honest.
+
+**Newly surfaced.**
+
+1. *A single-relationship prediction under-uses the layout.* `associates` is Disease-Gene, so every candidate spans one axis pair; the third axis (Compound) and its `binds` edges become inert context, identical in every panel. The metapath hive plot earns three axes only when the prediction traverses the whole metapath, i.e. Compound-treats-Disease drug repurposing, which the CbGaD slice lacks (it needs a re-subset via the runner). For a two-type relationship a [[p2cp]] or a degree-sorted adjacency view is the more honest encoding. This is the "core tension" of this page confirmed from the modeling side: hive plots want three or more *meaningful* typed axes.
+2. *Degree-sorted axes make degree bias in the errors legible.* The predictor's false positives and false negatives concentrate on high-degree hub genes (median within-metapath degree around 35 at error endpoints versus around 17 across all genes), which reads positionally at a glance because the Gene axis is degree-sorted. This connects the KG thread to [[subramonian-2024-degree-bias]] and the fairness sources. The honest ceiling from [[gnn-evaluation]] holds: the statistic does the finding, the layout contributes the positional read, and [[jin-2022-gnnlens|GNNLens]] already occupies visual GNN-error diagnosis, so the defensible claim is a cleaner positional KG-error view, not a method.
+3. *Overlaying all outcomes in one axes occludes; small multiples with a fixed layout are the fix.* True-edge context plus TP plus FN plus FP in one panel tangles the active axis pair. One outcome per panel on identical node positions is readable, and cross-model comparison (SAGE versus GCN) is a direct visual read when the layout is held fixed. This is the concrete motivation for gap #7.
+4. *The released API matters for a shipped example.* The spike notebook uses `node_graph_metrics=` and `graph_multigraph=` on `HivePlot`, and `unify_axes=` / `graph_multigraph=` on `HivePlotMatrix.from_tags`, none of which exist on released hiveplotlib 0.27.0. The dual-homed reader and render module target the released API instead (precompute the sort column; no in-construction metric computation), which is the portability constraint any eventual hiveplotlib KG example inherits, and another reason to land the [[hiveplot-unify-axes]] affordance.
+5. *Directedness, the one fundamental flaw, recurs from the modeling side.* The GNN message-passing graph had to be symmetrized because hiveplotlib has no per-edge directedness, and the slice mixes directed `regulates` with undirected `associates` and `binds`.
+
+Net: the KG story here is a package-fit story more than a figure. The metapath hive plots are a fine public-data showcase, and the error view is most compelling for a metapath-spanning prediction; the reusable asks are the edge-styling and fixed-layout-edge-layer conveniences in gap #7.
 
 ## Explicit non-goal
 

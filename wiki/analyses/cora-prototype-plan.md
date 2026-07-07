@@ -2,12 +2,14 @@
 title: "Cora Prototype Implementation Plan"
 type: analysis
 created: 2026-04-13
-updated: 2026-04-13
+updated: 2026-07-06
 sources: [hiveplotlib-python-repo, ma-2021-subgroup-fairness, gnn-heterogeneity-hive-plots]
 tags: [implementation-plan, cora, gnn-evaluation, hive-plot-matrix, prototype]
 ---
 
 # Cora Prototype Implementation Plan
+
+> **Status (2026-07-06): shipped.** This plan was executed, and the work extended to CiteSeer. The empirical results, with an honest findings scorecard and prior-art positioning, are in [[gnn-heterogeneity-findings]]. Read that page for what actually happened; this page is kept as the original implementation record. Note that the plan below still frames edge-level heterogeneity as the primary contribution, which the results did not bear out (see the findings page).
 
 Concrete implementation plan for the [[gnn-heterogeneity-hive-plots|GNN Heterogeneity Diagnosis via Hive Plot Matrices]] research proposal. This plan is self-contained and designed to be executed in a fresh session.
 

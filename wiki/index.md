@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-07-04
+updated: 2026-07-06
 ---
 
 # Hive Plot Research Wiki — Index
@@ -28,6 +28,12 @@ updated: 2026-07-04
 - [[kipf-2017-gcn|Kipf & Welling 2017 — GCN]] — Foundational graph convolutional network paper (stub — 0 sources)
 - [[subramonian-2024-degree-bias|Subramonian, Kang & Sun 2024 — Degree Bias]] — NeurIPS survey of 38 papers + first rigorous probabilistic bounds for degree bias; filter-type matters (0 sources — web research)
 - [[gnnfairviz-2025|GNNFairViz (Ye et al. 2025)]] — Multi-view visual analytics for GNN demographic-attribute fairness; counterfactual bias diagnosis (0 sources — web research)
+- [[hsu-2022-gnn-calibration|Hsu et al. 2022 — What Makes GNNs Miscalibrated?]] — Names distance-to-training as a GNN calibration factor; the prior art demoting the prototype's calibration finding (0 sources — web research)
+- [[huang-2021-correct-and-smooth|Huang et al. 2021 — Correct & Smooth]] — Propagates edge-correlated errors to improve predictions; establishes "errors cluster on edges" as textbook (0 sources — web research)
+- [[jia-benson-2020-residual-correlation|Jia & Benson 2020 — Residual Correlation in GNN Regression]] — Models GNN residual correlation on edges (regression); companion to Correct & Smooth (0 sources — web research)
+- [[congalton-1988-error-autocorrelation|Congalton 1988 — Spatial Autocorrelation of Classification Errors]] — Join-count both-wrong statistic on error maps; the sharpest antecedent for the residual screen (0 sources — web research)
+- [[ma-2022-homophily-necessity|Ma et al. 2022 — Is Homophily a Necessity?]] — GNNs fail when intra-class neighborhoods are indistinguishable; the mechanism behind the intra-class failure pockets (0 sources — web research)
+- [[jin-2022-gnnlens|Jin et al. 2022 — GNNLens]] — Interactive visual analytics for GNN error diagnosis; the nearest prior art to the hive-plot approach (0 sources — web research)
 - [[koren-2005-graph-drawing|Koren 2005 — Drawing Graphs by Eigenvectors]] — Spectral graph drawing: Laplacian eigenvectors as Cartesian coordinates; the prior art the spectral hive plot departs from (0 sources — web research)
 - [[atkins-1998-spectral-seriation|Atkins et al. 1998 — Spectral Seriation]] — Fiedler-vector ordering provably recovers a 1-D chain order; prior art for the within-axis sort (0 sources — web research)
 - [[nedialkova-2014-diffusion-map-md|Nedialkova et al. 2014 — Diffusion Maps for Peptide Folding]] — v1 cuts folded/unfolded while higher eigenvectors resolve within-state substructure; validates the higher-eigenvector sort in chemistry (0 sources — web research)
@@ -62,6 +68,7 @@ updated: 2026-07-04
 - [[applications-software-engineering]] — Code dependency visualization (2 sources)
 - [[graph-neural-networks]] — GNN architectures, message passing, benchmarks (2 sources)
 - [[gnn-evaluation]] — Standard GNN metrics and the structural heterogeneity gap (2 sources)
+- [[gnn-over-smoothing]] — Depth-driven collapse of node embeddings; the flagship broadened direction, rendered as a per-layer hive plot matrix (1 source)
 - [[structural-heterogeneity]] — Uneven graph topology and its impact on GNN performance (2 sources)
 - [[fixed-layout-comparability]] — Why fixing hive-plot axes by structure makes two networks directly comparable, and the pin-the-axis-ranges corollary (1 source)
 - [[expected-threat|Expected Threat (xT)]] — Grid-based soccer possession-value model (Singh 2018); the native fix for "all passes look equal" as value-weighted hive-plot edges (0 sources — maintainer domain knowledge)
@@ -71,8 +78,10 @@ updated: 2026-07-04
 
 - [[examples-and-applications|Examples & Applications Catalog]] — **Hub.** Living catalog of exploratory examples and applications of hiveplotlib (NN-viz, knowledge graphs, GNN heterogeneity, Karate Club)
 - [[karate-club-walkthrough]] — Step-by-step hiveplotlib walkthrough using Zachary's Karate Club (1 source)
-- [[gnn-heterogeneity-hive-plots]] — Research proposal: HivePlotMatrix for GNN classification diagnostics, node- and edge-level (7 sources)
-- [[cora-prototype-plan]] — Implementation plan for Cora GNN evaluation prototype (3 sources)
+- [[gnn-heterogeneity-findings]] — **Empirical results + prior-art check.** Ran the Cora/CiteSeer prototype, then adversarially checked every finding: homophily confirmed-but-known, edge contagion refuted, calibration-by-distance is prior art (Hsu 2022), residual screen novel only as a composition. The honest scorecard (10 sources)
+- [[gnn-heterogeneity-hive-plots]] — Research proposal (superseded by the findings page; its edge-level novelty claims did not survive) (7 sources)
+- [[gnn-research-directions]] — **Broadened menu.** Reopens the GNN scope past node-classification error diagnosis: over-smoothing per-layer matrices, per-epoch training movies, edge-native link prediction, differential architecture/seed diffs, Hetionet KG completion, and mechanism views. Ranked for artifact strength, honest that these are visual wins not novelty wins, with a dispatch decomposition (5 sources)
+- [[cora-prototype-plan]] — Implementation plan for the GNN evaluation prototype (shipped; see findings page) (3 sources)
 - [[nxviz-comparison]] — Capability comparison: nxviz (revived June 2026) vs hiveplotlib, for JOSS State of the field (1 source — web research)
 - [[hiveplotlib-research-impact]] — Citations, downstream uses, and PyPI download stats for the JOSS Research impact statement; thin-but-real (1 source — web research)
 - [[joss-ai-disclosure-precedents]] — Accepted-JOSS-paper AI-disclosure examples by posture, to calibrate the paper's mandatory disclosure (1 source — web research)

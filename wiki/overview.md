@@ -36,23 +36,26 @@ The method has been adopted across multiple domains — most strongly in [[appli
 
 | Category | Count |
 |----------|-------|
-| Sources ingested | 11 |
-| Entity pages | 4 |
-| Concept pages | 15 |
-| Analysis pages | 3 |
-| **Total wiki pages** | **33** (+ index, log, overview) |
+| Source pages | 27 |
+| Entity pages | 5 |
+| Concept pages | 21 |
+| Analysis pages | 14 |
+| **Total wiki pages** | **67** (+ index, log, overview) |
 
 ## Research Directions
 
 ### GNN Heterogeneity Diagnosis
 
-Hive plots aren't just a visualization tool — they are potentially a **diagnostic tool for machine learning evaluation**. The [[gnn-heterogeneity-hive-plots|GNN heterogeneity proposal]] argues that [[hive-plot-matrix|HivePlotMatrix]] can expose classification performance variation that standard [[gnn-evaluation|aggregate GNN metrics]] mask — at both the node level and, critically, the **edge level**.
+Hive plots were proposed as a **diagnostic tool for machine learning evaluation**: the [[gnn-heterogeneity-hive-plots|GNN heterogeneity proposal]] argued that a [[hive-plot-matrix|HivePlotMatrix]] could expose classification performance variation that aggregate [[gnn-evaluation|GNN metrics]] mask. The prototype ran (GCN/GAT/GraphSAGE on Cora and CiteSeer), and an adversarial literature check followed. The honest outcome, filed in [[gnn-heterogeneity-findings]], is mostly negative and worth remembering:
 
-The core idea: train a [[graph-neural-networks|GNN]] on a node classification benchmark (e.g., GCN on Cora), then build a HivePlotMatrix where nodes are partitioned by structural properties (degree, community, local homophily, training-set distance) and edges are colored by correct vs. misclassified. The matrix reveals *which structural decomposition exposes the most [[structural-heterogeneity|performance heterogeneity]]* — answering "your model is 95% accurate overall, but where does it fail?"
+- The strongest simple predictor (local homophily) is a **confirmation** of known results ([[ma-2022-homophily-necessity|Ma 2022]] and others), not a discovery.
+- The proposal's headline novelty, **edge-level "error contagion,"** was **refuted**: the apparent both-wrong-edge enrichment (2.22x) collapses to ~1.16x once you condition on community and homophily, and the premise (errors correlate on edges) is textbook ([[huang-2021-correct-and-smooth|Correct & Smooth]], [[jia-benson-2020-residual-correlation|Jia & Benson]]). The earlier "no work examines edge-level heterogeneity" claim was wrong.
+- The most interesting effect, **calibration structured by distance-to-training**, turned out to be prior art ([[hsu-2022-gnn-calibration|Hsu et al. 2022]] names it as a calibration factor on the same model and datasets); only a narrow error-conditional refinement survives.
+- The one durable contribution is a **residual screen** (fit a covariate baseline for per-node error, form an edge-level independence null, flag joint failures the baseline cannot explain), and even that is novel only as a *composition* of prior parts ([[congalton-1988-error-autocorrelation|Congalton 1988]] join-count, slice discovery, [[jin-2022-gnnlens|GNNLens]]). Its intra-class failure pockets still need a label-noise audit before they can be called model blind spots.
 
-A deep reading of [[ma-2021-subgroup-fairness|Ma, Deng & Mei (NeurIPS 2021)]] confirms the theoretical foundation: they prove accuracy disparity exists across structural subgroups and identify training-set distance as the key predictor. But their analysis is purely tabular (bar charts), single-variable-at-a-time, and node-level only. A survey of the citing literature ([[subramonian-2024-degree-bias|Subramonian et al. 2024]] — 38 papers on degree bias) and the visual analytics space ([[gnnfairviz-2025|GNNFairViz]]) confirms that **no existing work** uses network visualization for structural subgroup diagnosis, and **no work at all** examines edge-level heterogeneity in GNN performance. The hive plot approach is novel on multiple axes: multi-dimensional sweep, edge-aware visualization, continuous structural gradients, and visual model cards.
+The takeaway for the wiki: the statistics did the finding; the hive plot contributed positional layout, and [[jin-2022-gnnlens|GNNLens]] already occupies the visual-GNN-error-diagnosis space. The technical path is still turnkey (the v0.28 [[graph-features|graph-feature API]] ingests a PyTorch Geometric / NetworkX graph via `from_variable_sweep(graph=...)`), but the research value here is the method and the negative results, not a headline diagnosis.
 
-This direction requires no new [[hiveplotlib]] features, only application of existing `HivePlotMatrix.from_variable_sweep()` and the NetworkX integration. The v0.28 [[graph-features|graph-feature API]] (shipped 2026-06-18) makes the path nearly turnkey: a PyTorch Geometric / NetworkX graph carrying predictions ingests via `from_variable_sweep(graph=...)`, and the structural sweep variables (degree, centrality, community labels) compute in the same call through `node_graph_metrics`, retiring the old manual extract-and-merge step.
+The response to that dead end is [[gnn-research-directions]]: a deliberately broadened menu that stops fighting the medium. It changes the levers the first pass held fixed (the task, what gets plotted, the datasets, the encoding grammar) and is ranked for **artifact strength** rather than novelty, which is the honest bar for a visualization library. The flagship is [[gnn-over-smoothing]] rendered as a per-layer [[hive-plot-matrix|HivePlotMatrix]] (watch class separation collapse with depth); other directions include per-epoch training movies (the GNN analog of the [[nn-training-dynamics-p2cp-exploration|nn-viz]] work, less contrived because there is a real graph to watch), edge-native link prediction (the edge *is* the prediction, so the medium finally fits), [[differential-hive-plot|differential]] architecture/seed diffs (data already in hand), and Hetionet KG completion (joining the [[hive-plots-for-knowledge-graphs|KG thread]]).
 
 ### Spectral Hive Plots
 

@@ -11,45 +11,18 @@ tags: [gnn-evaluation, hive-plot-matrix, heterogeneity, research-proposal, machi
 
 A research proposal for using [[hive-plot-matrix|HivePlotMatrix]] to expose classification performance heterogeneity that standard [[gnn-evaluation|GNN evaluation metrics]] mask — at both the **node level** and the **edge level**.
 
-## Findings status (2026-06, Cora prototype in `gnn-hiveplots`)
+> **Status (2026-07-06): this is the original proposal; its novelty claims did not survive.** The prototype ran (Cora and CiteSeer), and an adversarial literature check demoted or refuted every candidate finding. The honest results and full prior-art positioning are in [[gnn-heterogeneity-findings]]. Read that page for what happened; the proposal below is kept as the original framing. In particular, the "edge-level heterogeneity is unexplored" premise in the Motivation is wrong (see the one-paragraph summary next).
 
-A critical review of the prototype results. Honest scorecard:
+## Findings status (post-counterfactual, 2026-07-06)
 
-**Confirmed but not novel.** Homophily is the strongest simple failure predictor
-(31% / 64% / 91% accuracy across heterophilous / mixed / homophilous bins, stable
-on the test split alone and across 5 seeds). This confirms established results
-(Zhu et al. 2020, "Beyond Homophily in Graph Neural Networks"; Ma et al. 2021,
-"Is Homophily a Necessity?"; Loveland et al. 2023 on local homophily performance
-discrepancies). Any writeup must cite this literature and frame the result as
-confirmation. It is also close to mechanical for a smoothing classifier.
+One-paragraph scorecard; details and citations in [[gnn-heterogeneity-findings]].
 
-**Refuted.** The proposed edge-level novelty ("misclassification edges cluster:
-error contagion") did not survive stronger nulls. The 2.2x `both_wrong`
-enrichment vs node independence drops to ~1.5x under a homophily-preserving
-permutation null and to ~1.16x (seed-stable 1.20 +/- 0.05) under a community x
-homophily null. The residual is errors concentrating in particular communities,
-not pairwise contagion, and a 2-layer GCN gives adjacent nodes overlapping
-receptive fields anyway, so correlated errors follow from shared causes.
+1. **Homophily is the strongest simple predictor (confirmed, known).** 31/64/91% accuracy across homophily bins on Cora, but this is established (Zhu 2020; [[ma-2022-homophily-necessity|Ma 2022]]; Loveland 2023; Mao 2023), not a discovery.
+2. **Edge-level "error contagion" (refuted).** The 2.22x `both_wrong` enrichment collapses to ~1.16x under a community-x-homophily null (seed-stable 1.20). And the premise (errors correlate on edges) is textbook: [[huang-2021-correct-and-smooth|Correct & Smooth]] and [[jia-benson-2020-residual-correlation|Jia & Benson]] already assume/model it. The "edge-level heterogeneity is unexplored" claim below is therefore false.
+3. **Calibration structured by distance-to-training (real, but prior art).** [[hsu-2022-gnn-calibration|Hsu et al. 2022]] already names distance-to-training as a GNN calibration factor, on the same model and datasets. Only a narrow error-conditional refinement survives.
+4. **Residual screen finding intra-class failure pockets (novel only as a composition).** Every ingredient has prior art ([[congalton-1988-error-autocorrelation|Congalton 1988]] join-count; [[jin-2022-gnnlens|GNNLens]]; slice discovery); the mechanism is owned by [[ma-2022-homophily-necessity|Ma 2022]]; label noise is not yet ruled out.
 
-**The keeper.** Adjacent-to-training wrong nodes are confidently wrong (mean
-confidence 0.57, 57.5% above 0.5) while far and unreachable wrong nodes are
-uncertain (0.33-0.35). The interaction survives a homophily control (Spearman
--0.35 after residualizing). Calibration error varies systematically over graph
-structure, which aggregate-calibration tooling does not show.
-
-**Also wrong in the original sketch below:** GCN on Cora gets ~81% test accuracy,
-not ~97.5%, and the degree punchline did not materialize (degree is the weakest
-partition: 79% vs 87%, Cramér's V 0.079, consistent with Ma et al. finding no
-clear centrality trend).
-
-**Visualization lesson.** Raw edge-density hive plots showed volume, not
-heterogeneity, and led the narrative astray once (a swapped-column reading).
-Two fixes now prototyped in `gnn-hiveplots/scripts/04_rate_hive_plots.py` and
-`05_residual_screen.py`: color edges by the per-axis-pair error *rate* on a
-scale shared across panels, and a *residual screen* that colors edges by
-observed-minus-expected failure under a logistic baseline of known predictors,
-so only unexplained structure lights up. See [[gnn-evaluation]] for where this
-should go next.
+The GCN accuracy figure sketched below (~97.5%) is also wrong: it is ~81% on Cora.
 
 ## Motivation
 
