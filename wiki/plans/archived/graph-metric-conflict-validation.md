@@ -1857,10 +1857,14 @@ from hiveplotlib import HivePlot
 from hiveplotlib.node import NodeCollection
 from hiveplotlib.edges import Edges
 
-nodes = NodeCollection(data={"unique_id": [0, 1, 2], "x": [0.0, 1.0, 2.0]}, unique_id_column="unique_id")
+nodes = NodeCollection(
+    data={"unique_id": [0, 1, 2], "x": [0.0, 1.0, 2.0]}, unique_id_column="unique_id"
+)
 # (0, 1) listed twice in the SAME direction -> genuine multigraph collapse, attributes of the
 # non-final duplicate are dropped before the metric runs.
-edges = Edges(edges=[[0, 1], [0, 1], [1, 2]], from_column_name="from", to_column_name="to")
+edges = Edges(
+    edges=[[0, 1], [0, 1], [1, 2]], from_column_name="from", to_column_name="to"
+)
 
 # Call site (default warn_on_parallel_edge_collapse=True): a UserWarning fires naming 1 collapsing edge.
 hp = HivePlot(
@@ -1882,7 +1886,9 @@ from hiveplotlib import HivePlot
 from hiveplotlib.node import NodeCollection
 from hiveplotlib.edges import Edges
 
-nodes = NodeCollection(data={"unique_id": [0, 1], "x": [0.0, 1.0]}, unique_id_column="unique_id")
+nodes = NodeCollection(
+    data={"unique_id": [0, 1], "x": [0.0, 1.0]}, unique_id_column="unique_id"
+)
 edges = Edges(edges=[[0, 1], [1, 0]], from_column_name="from", to_column_name="to")
 
 # Call site: `triangles` is undirected-only, so the internal graph builds undirected and merges

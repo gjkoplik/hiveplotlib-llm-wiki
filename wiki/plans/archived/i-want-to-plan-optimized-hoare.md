@@ -63,10 +63,12 @@ def nodes_edges_to_networkx(
     """
     ...
 
+
 # BaseHivePlot.to_networkx (next to to_json at hiveplot.py:1514)
 def to_networkx(self, *, directed: bool = True, multigraph: bool = True) -> "nx.Graph":
     """Thin wrapper around `nodes_edges_to_networkx(self.nodes, self.edges, ...)`."""
     ...
+
 
 # HivePlot.from_networkx (classmethod)
 @classmethod
@@ -133,9 +135,11 @@ The starter catalog is curated to scalar, hive-plot-relevant metrics. **Link-pre
 NodeMetricFn = Callable[..., dict[Hashable, Any]]
 EdgeMetricFn = Callable[..., dict[tuple[Hashable, Hashable], Any]]
 
+
 def degree(graph: nx.Graph) -> dict[Hashable, int]:
     """Number of edges incident to each node. No kwargs accepted."""
     return dict(graph.degree())
+
 
 def in_degree(graph: nx.Graph) -> dict[Hashable, int]:
     """Number of incoming edges to each node. Requires a directed graph. No kwargs accepted."""
@@ -144,6 +148,7 @@ def in_degree(graph: nx.Graph) -> dict[Hashable, int]:
         raise ValueError(msg)
     return dict(graph.in_degree())
 
+
 def out_degree(graph: nx.Graph) -> dict[Hashable, int]:
     """Number of outgoing edges from each node. Requires a directed graph. No kwargs accepted."""
     if not graph.is_directed():
@@ -151,20 +156,29 @@ def out_degree(graph: nx.Graph) -> dict[Hashable, int]:
         raise ValueError(msg)
     return dict(graph.out_degree())
 
+
 def betweenness_centrality(graph: nx.Graph, **kwargs) -> dict[Hashable, float]:
     """Wraps :py:func:`networkx.betweenness_centrality`. Accepts: k, normalized, weight, endpoints, seed."""
     return nx.betweenness_centrality(graph, **kwargs)
 
+
 # ... and similarly for: closeness_centrality, eigenvector_centrality, pagerank,
 #     clustering, core_number, triangles  (each thin-wraps the nx function with kwargs forwarded)
 
-def edge_betweenness_centrality(graph: nx.Graph, **kwargs) -> dict[tuple[Hashable, Hashable], float]:
+
+def edge_betweenness_centrality(
+    graph: nx.Graph, **kwargs
+) -> dict[tuple[Hashable, Hashable], float]:
     """Wraps :py:func:`networkx.edge_betweenness_centrality`. Accepts: k, normalized, weight, seed."""
     return nx.edge_betweenness_centrality(graph, **kwargs)
 
-def edge_load_centrality(graph: nx.Graph, **kwargs) -> dict[tuple[Hashable, Hashable], float]:
+
+def edge_load_centrality(
+    graph: nx.Graph, **kwargs
+) -> dict[tuple[Hashable, Hashable], float]:
     """Wraps :py:func:`networkx.edge_load_centrality`. Accepts: cutoff."""
     return nx.edge_load_centrality(graph, **kwargs)
+
 
 # Curated starter set
 GRAPH_NODE_METRICS: dict[str, NodeMetricFn] = {
@@ -185,15 +199,22 @@ GRAPH_EDGE_METRICS: dict[str, EdgeMetricFn] = {
     "edge_load_centrality": edge_load_centrality,
 }
 
+
 def compute_graph_metrics(
     graph: nx.Graph,
     *,
     node_metrics: Optional[Sequence[str]] = None,
     edge_metrics: Optional[Sequence[str]] = None,
-    node_metric_kwargs: Optional[dict[str, dict]] = None,    # {"betweenness_centrality": {"k": 50}}
-    edge_metric_kwargs: Optional[dict[str, dict]] = None,    # {"edge_betweenness_centrality": {"k": 50}}
-    node_metric_rename: Optional[dict[str, str]] = None,     # {"degree": "node_degree"}
-    edge_metric_rename: Optional[dict[str, str]] = None,     # {"edge_betweenness_centrality": "ebc"}
+    node_metric_kwargs: Optional[
+        dict[str, dict]
+    ] = None,  # {"betweenness_centrality": {"k": 50}}
+    edge_metric_kwargs: Optional[
+        dict[str, dict]
+    ] = None,  # {"edge_betweenness_centrality": {"k": 50}}
+    node_metric_rename: Optional[dict[str, str]] = None,  # {"degree": "node_degree"}
+    edge_metric_rename: Optional[
+        dict[str, str]
+    ] = None,  # {"edge_betweenness_centrality": "ebc"}
     target_nodes: Optional[NodeCollection] = None,
     target_edges: Optional[Edges] = None,
 ) -> tuple[Optional[NodeCollection], Optional[Edges]]:
@@ -210,14 +231,15 @@ def compute_graph_metrics(
 
 ```python
 # Added to HivePlot.__init__
-node_graph_metrics: Optional[Sequence[str]] = None,
-edge_graph_metrics: Optional[Sequence[str]] = None,
-node_graph_metric_kwargs: Optional[dict[str, dict]] = None,
-edge_graph_metric_kwargs: Optional[dict[str, dict]] = None,
-node_graph_metric_rename: Optional[dict[str, str]] = None,
-edge_graph_metric_rename: Optional[dict[str, str]] = None,
-graph_directed: bool = True,
-graph_multigraph: bool = False,    # NB: differs from to_networkx (which defaults True)
+node_graph_metrics: Optional[Sequence[str]] = (None,)
+edge_graph_metrics: Optional[Sequence[str]] = (None,)
+node_graph_metric_kwargs: Optional[dict[str, dict]] = (None,)
+edge_graph_metric_kwargs: Optional[dict[str, dict]] = (None,)
+node_graph_metric_rename: Optional[dict[str, str]] = (None,)
+edge_graph_metric_rename: Optional[dict[str, str]] = (None,)
+graph_directed: bool = (True,)
+graph_multigraph: bool = (False,)  # NB: differs from to_networkx (which defaults True)
+
 
 # New instance method on HivePlot — for post-instantiation use, SAME names as init
 def compute_graph_metrics(
@@ -354,7 +376,10 @@ If the notebook needs to keep `(NodeCollection, Edges)` as intermediates (e.g., 
 ```python
 nodes, edges = networkx_to_nodes_edges(G)
 nodes, _ = compute_graph_metrics(
-    G, node_metrics="degree", target_nodes=nodes, target_edges=edges,
+    G,
+    node_metrics="degree",
+    target_nodes=nodes,
+    target_edges=edges,
 )
 hp = HivePlot(nodes, edges, partition_variable="degree", sorting_variables="degree")
 ```
@@ -709,8 +734,9 @@ def nodes_edges_to_networkx(
     directed: bool = True,
     multigraph: bool = True,
     tag_attribute_name: str = "tag",
-    source_attribute_name: Optional[str] = None,    # opt-in row annotation
+    source_attribute_name: Optional[str] = None,  # opt-in row annotation
 ) -> nx.Graph: ...
+
 
 # BaseHivePlot.to_networkx
 def to_networkx(
@@ -718,8 +744,11 @@ def to_networkx(
     *,
     directed: bool = True,
     multigraph: bool = True,
-    source_attribute_name: Optional[str] = None,    # forwarded; default keeps export clean
+    source_attribute_name: Optional[
+        str
+    ] = None,  # forwarded; default keeps export clean
 ) -> "nx.Graph": ...
+
 
 # HivePlot.from_networkx — defaults graph_directed / graph_multigraph from input graph
 @classmethod
@@ -793,8 +822,9 @@ Defaults match the plan (`directed=True`, `multigraph=True`, `tag_attribute_name
 
 ```python
 # graph_features/__init__.py
-GRAPH_NODE_METRICS: dict[str, NodeMetricFn]    # 10 entries
-GRAPH_EDGE_METRICS: dict[str, EdgeMetricFn]    # 2 entries
+GRAPH_NODE_METRICS: dict[str, NodeMetricFn]  # 10 entries
+GRAPH_EDGE_METRICS: dict[str, EdgeMetricFn]  # 2 entries
+
 
 def compute_graph_metrics(
     graph: nx.Graph,
@@ -810,16 +840,21 @@ def compute_graph_metrics(
     source_attribute_name: str = "_hiveplotlib_source",  # default hardcoded; was an exported constant in earlier draft, removed
 ) -> tuple[Optional[NodeCollection], Optional[Edges]]: ...
 
+
 # HivePlot.__init__ NEW kwargs (added before use_numba/n_parallel):
-node_graph_metrics: Optional[Union[str, Sequence[str]]] = None,    # accepts single string or list
-edge_graph_metrics: Optional[Union[str, Sequence[str]]] = None,    # same
-node_graph_metric_kwargs: Optional[dict[str, dict]] = None,
-edge_graph_metric_kwargs: Optional[dict[str, dict]] = None,
-node_graph_metric_rename: Optional[dict[str, str]] = None,
-edge_graph_metric_rename: Optional[dict[str, str]] = None,
-graph_directed: bool = True,
-graph_multigraph: bool = False,    # NB: differs from to_networkx (which defaults True)
-graph_source_attribute_name: str = "_hiveplotlib_source",    # user-overridable annotation name
+node_graph_metrics: Optional[Union[str, Sequence[str]]] = (
+    None,
+)  # accepts single string or list
+edge_graph_metrics: Optional[Union[str, Sequence[str]]] = (None,)  # same
+node_graph_metric_kwargs: Optional[dict[str, dict]] = (None,)
+edge_graph_metric_kwargs: Optional[dict[str, dict]] = (None,)
+node_graph_metric_rename: Optional[dict[str, str]] = (None,)
+edge_graph_metric_rename: Optional[dict[str, str]] = (None,)
+graph_directed: bool = (True,)
+graph_multigraph: bool = (False,)  # NB: differs from to_networkx (which defaults True)
+graph_source_attribute_name: str = (
+    "_hiveplotlib_source",
+)  # user-overridable annotation name
 
 # HivePlot.compute_graph_metrics(...) — same kwargs as above (minus node/edge data params)
 # NOTE: the three graph_* defaults on the *instance method* were later
@@ -1235,32 +1270,41 @@ Unlike Workstream E, where the discovery sweep found seven notebooks with the le
 ```python
 # from_partition path (gallery notebook intent: sort by computed metric)
 hpm = HivePlotMatrix.from_partition(
-    nodes=nodes, edges=edges,
-    partition_variable="group", sorting_variables="degree",
-    node_graph_metrics="degree", progress=False,
+    nodes=nodes,
+    edges=edges,
+    partition_variable="group",
+    sorting_variables="degree",
+    node_graph_metrics="degree",
+    progress=False,
 )
 
 # from_variable_sweep path (gallery notebook intent: sweep over multiple metrics)
 metric_names = ["degree", "betweenness_centrality", "pagerank"]
 hpm = HivePlotMatrix.from_variable_sweep(
-    nodes=nodes, edges=edges,
+    nodes=nodes,
+    edges=edges,
     partition_variable="group",
     sorting_variables_list=metric_names,
     node_graph_metrics=metric_names,
-    unify_axes=False, progress=False,
+    unify_axes=False,
+    progress=False,
 )
 
 # from_tags path (gallery notebook intent: sort per-tag axis by union-of-tags metric)
 hpm = HivePlotMatrix.from_tags(
-    nodes=nodes, edges=edges,
-    partition_variable="group", sorting_variables="degree",
-    node_graph_metrics="degree", repeat_axes=True,
+    nodes=nodes,
+    edges=edges,
+    partition_variable="group",
+    sorting_variables="degree",
+    node_graph_metrics="degree",
+    repeat_axes=True,
 )
 
 # generic constructor path (gallery notebook intent: attach metrics across all cells)
 hpm = HivePlotMatrix(
     hive_plots=[[hp_a, hp_b], [hp_c, hp_d]],
-    row_labels=[...], col_labels=[...],
+    row_labels=[...],
+    col_labels=[...],
     node_graph_metrics="degree",
 )
 hpm_more = hpm.copy()
@@ -1440,6 +1484,7 @@ def from_networkx(
     :return: :py:class:`HivePlotMatrix` instance.
     """
 
+
 # widened signature on from_networkx_variable_sweep (finding #2, post-reconciliation)
 # All four sweep-dimension parameters lifted, matching the sibling precedent.
 @classmethod
@@ -1449,7 +1494,9 @@ def from_networkx_variable_sweep(
     *,
     partition_variable: Optional[Hashable] = None,
     sorting_variables: Optional[Union[Hashable, Dict[Hashable, Hashable]]] = None,
-    sorting_variables_list: Optional[List[Union[Hashable, Dict[Hashable, Hashable]]]] = None,
+    sorting_variables_list: Optional[
+        List[Union[Hashable, Dict[Hashable, Hashable]]]
+    ] = None,
     partition_variables_list: Optional[List[Hashable]] = None,
     unique_id_name: str = "unique_id",
     check_uniqueness: bool = True,
@@ -1535,7 +1582,9 @@ hpm = HivePlotMatrix.from_networkx_variable_sweep(
 
 # Unknown mode -> clear error pointing at the valid values:
 try:
-    HivePlotMatrix.from_networkx(g, mode="cluster", partition_variable="club", sorting_variables="degree")
+    HivePlotMatrix.from_networkx(
+        g, mode="cluster", partition_variable="club", sorting_variables="degree"
+    )
 except ValueError as e:
     print(e)
 # ValueError: `mode` must be one of {'partition', 'variable_sweep', 'tags'}; got 'cluster'.
@@ -1594,7 +1643,9 @@ def from_networkx_variable_sweep(
     *,
     partition_variable: Optional[Hashable] = None,
     sorting_variables: Optional[Union[Hashable, Dict[Hashable, Hashable]]] = None,
-    sorting_variables_list: Optional[List[Union[Hashable, Dict[Hashable, Hashable]]]] = None,
+    sorting_variables_list: Optional[
+        List[Union[Hashable, Dict[Hashable, Hashable]]]
+    ] = None,
     partition_variables_list: Optional[List[Hashable]] = None,
     unique_id_name: str = "unique_id",
     check_uniqueness: bool = True,
@@ -1946,14 +1997,18 @@ class HivePlot(BaseHivePlot):
         edges: Optional[Union[Edges, np.ndarray]] = None,
         *,
         graph: Optional["nx.Graph"] = None,
-        partition_variable: Hashable,                                   # required, kw-only
-        sorting_variables: Union[Hashable, Dict[Hashable, Hashable]],   # required, kw-only
+        partition_variable: Hashable,  # required, kw-only
+        sorting_variables: Union[
+            Hashable, Dict[Hashable, Hashable]
+        ],  # required, kw-only
         unique_id_name: str = "unique_id",
         check_uniqueness: bool = True,
         # ... existing kwargs (axis kwargs, edge kwargs, etc.) unchanged
-        graph_directed: Optional[bool] = None,        # was bool = True
-        graph_multigraph: Optional[bool] = None,      # was bool = False
-        graph_source_attribute_name: Optional[str] = None,  # resolves to "_hiveplotlib_source"
+        graph_directed: Optional[bool] = None,  # was bool = True
+        graph_multigraph: Optional[bool] = None,  # was bool = False
+        graph_source_attribute_name: Optional[
+            str
+        ] = None,  # resolves to "_hiveplotlib_source"
     ) -> None:
         """
         Construct a HivePlot from either tabular data ((nodes, edges)) or a networkx graph.
@@ -1974,6 +2029,7 @@ class HivePlot(BaseHivePlot):
         prefix is cosmetic, not semantic.
         """
 
+
 # HivePlotMatrix.from_partition (consolidated; same shape)
 @classmethod
 def from_partition(
@@ -1982,13 +2038,14 @@ def from_partition(
     edges: Optional[Union[Edges, np.ndarray]] = None,
     *,
     graph: Optional["nx.Graph"] = None,
-    partition_variable: Hashable,                                   # required, kw-only
-    sorting_variables: Union[Hashable, Dict[Hashable, Hashable]],   # required, kw-only
+    partition_variable: Hashable,  # required, kw-only
+    sorting_variables: Union[Hashable, Dict[Hashable, Hashable]],  # required, kw-only
     # ... existing kwargs unchanged
     graph_directed: Optional[bool] = None,
     graph_multigraph: Optional[bool] = None,
     graph_source_attribute_name: Optional[str] = None,
 ) -> "HivePlotMatrix": ...
+
 
 # HivePlotMatrix.from_variable_sweep (consolidated; the four sweep-dimension kwargs already named)
 @classmethod
@@ -1998,8 +2055,10 @@ def from_variable_sweep(
     edges: Optional[Union[Edges, np.ndarray]] = None,
     *,
     graph: Optional["nx.Graph"] = None,
-    partition_variable: Optional[Hashable] = None,                  # sweep param; stays Optional
-    sorting_variables: Optional[Union[Hashable, Dict[Hashable, Hashable]]] = None,  # sweep param; stays Optional
+    partition_variable: Optional[Hashable] = None,  # sweep param; stays Optional
+    sorting_variables: Optional[
+        Union[Hashable, Dict[Hashable, Hashable]]
+    ] = None,  # sweep param; stays Optional
     sorting_variables_list: Optional[List[...]] = None,
     partition_variables_list: Optional[List[Hashable]] = None,
     # ... existing kwargs unchanged
@@ -2007,6 +2066,7 @@ def from_variable_sweep(
     graph_multigraph: Optional[bool] = None,
     graph_source_attribute_name: Optional[str] = None,
 ) -> "HivePlotMatrix": ...
+
 
 # HivePlotMatrix.from_tags (consolidated; same shape)
 @classmethod
@@ -2016,8 +2076,8 @@ def from_tags(
     edges: Optional[Union[Edges, np.ndarray]] = None,
     *,
     graph: Optional["nx.Graph"] = None,
-    partition_variable: Hashable,                                   # required, kw-only
-    sorting_variables: Union[Hashable, Dict[Hashable, Hashable]],   # required, kw-only
+    partition_variable: Hashable,  # required, kw-only
+    sorting_variables: Union[Hashable, Dict[Hashable, Hashable]],  # required, kw-only
     # ... existing kwargs unchanged
     graph_directed: Optional[bool] = None,
     graph_multigraph: Optional[bool] = None,
@@ -2054,13 +2114,18 @@ Note on `from_variable_sweep`: `partition_variable` and `sorting_variables` rema
 
    ```python
    if graph is not None:
-       graph_directed = graph_directed if graph_directed is not None else graph.is_directed()
-       graph_multigraph = graph_multigraph if graph_multigraph is not None else graph.is_multigraph()
+       graph_directed = (
+           graph_directed if graph_directed is not None else graph.is_directed()
+       )
+       graph_multigraph = (
+           graph_multigraph if graph_multigraph is not None else graph.is_multigraph()
+       )
    else:
        graph_directed = graph_directed if graph_directed is not None else True
        graph_multigraph = graph_multigraph if graph_multigraph is not None else False
    graph_source_attribute_name = (
-       graph_source_attribute_name if graph_source_attribute_name is not None
+       graph_source_attribute_name
+       if graph_source_attribute_name is not None
        else "_hiveplotlib_source"
    )
    ```
@@ -2129,19 +2194,23 @@ hp = HivePlot(
 
 # === HivePlotMatrix.from_partition, both shapes (nodes/edges leads) ===
 hpm = HivePlotMatrix.from_partition(
-    nodes=my_nodes, edges=my_edges,
-    partition_variable="club", sorting_variables="degree",
+    nodes=my_nodes,
+    edges=my_edges,
+    partition_variable="club",
+    sorting_variables="degree",
     node_graph_metrics="degree",
 )
 hpm = HivePlotMatrix.from_partition(
     graph=g,
-    partition_variable="club", sorting_variables="degree",
+    partition_variable="club",
+    sorting_variables="degree",
     node_graph_metrics="degree",
 )
 
 # === HivePlotMatrix.from_variable_sweep, both shapes ===
 hpm = HivePlotMatrix.from_variable_sweep(
-    nodes=my_nodes, edges=my_edges,
+    nodes=my_nodes,
+    edges=my_edges,
     partition_variable="club",
     sorting_variables_list=["degree", "betweenness_centrality"],
     node_graph_metrics=["degree", "betweenness_centrality"],
@@ -2156,21 +2225,27 @@ hpm = HivePlotMatrix.from_variable_sweep(
 # === HivePlotMatrix.from_tags, both shapes ===
 g_multi = nx.MultiGraph(...)  # carries edge tag attribute
 hpm = HivePlotMatrix.from_tags(
-    nodes=my_nodes, edges=my_edges,
-    partition_variable="club", sorting_variables="degree",
+    nodes=my_nodes,
+    edges=my_edges,
+    partition_variable="club",
+    sorting_variables="degree",
     node_graph_metrics="degree",
 )
 hpm = HivePlotMatrix.from_tags(
     graph=g_multi,
-    partition_variable="club", sorting_variables="degree",
+    partition_variable="club",
+    sorting_variables="degree",
     node_graph_metrics="degree",
 )
 
 # === Error cases: each message names a recovery path ===
 try:
     HivePlot(
-        nodes=my_nodes, edges=my_edges, graph=g,
-        partition_variable="club", sorting_variables="degree",
+        nodes=my_nodes,
+        edges=my_edges,
+        graph=g,
+        partition_variable="club",
+        sorting_variables="degree",
     )
 except ValueError as e:
     print(e)
@@ -2299,13 +2374,14 @@ def __init__(
     edges: Optional[Union[Edges, np.ndarray]] = None,
     *,
     graph: Optional["nx.Graph"] = None,
-    partition_variable: Hashable,                                   # required, kw-only
-    sorting_variables: Union[Hashable, Dict[Hashable, Hashable]],   # required, kw-only
+    partition_variable: Hashable,  # required, kw-only
+    sorting_variables: Union[Hashable, Dict[Hashable, Hashable]],  # required, kw-only
     # ... rest unchanged, including:
-    graph_directed: Optional[bool] = None,        # was bool = True
-    graph_multigraph: Optional[bool] = None,      # was bool = False
+    graph_directed: Optional[bool] = None,  # was bool = True
+    graph_multigraph: Optional[bool] = None,  # was bool = False
     # graph_source_attribute_name stays str (no inference rule applies)
 ) -> None: ...
+
 
 # HivePlotMatrix.from_partition / from_tags — same pattern as the brief proposes (kw-only required)
 # HivePlotMatrix.from_variable_sweep — same pattern as the brief proposes (four sweep params already kw-only Optional)
@@ -3571,6 +3647,7 @@ The four string-quoted `Optional["nx.Graph"]` annotations exist because `src/hiv
 
 ```python
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     import networkx as nx
 ```
@@ -3811,19 +3888,23 @@ from hiveplotlib.converters import nodes_edges_to_networkx
 # A common shape: a MultiGraph where each edge carries a `tag` attribute naming
 # its relationship type ("official" vs "social" vs "informal").
 g = nx.MultiGraph()
-g.add_nodes_from([
-    (0, {"club": "A", "rank": 1}),
-    (1, {"club": "A", "rank": 2}),
-    (2, {"club": "B", "rank": 1}),
-    (3, {"club": "B", "rank": 2}),
-])
-g.add_edges_from([
-    (0, 1, {"tag": "official"}),
-    (1, 2, {"tag": "official"}),
-    (0, 2, {"tag": "social"}),
-    (2, 3, {"tag": "social"}),
-    (1, 3, {"tag": "informal"}),
-])
+g.add_nodes_from(
+    [
+        (0, {"club": "A", "rank": 1}),
+        (1, {"club": "A", "rank": 2}),
+        (2, {"club": "B", "rank": 1}),
+        (3, {"club": "B", "rank": 2}),
+    ]
+)
+g.add_edges_from(
+    [
+        (0, 1, {"tag": "official"}),
+        (1, 2, {"tag": "official"}),
+        (0, 2, {"tag": "social"}),
+        (2, 3, {"tag": "social"}),
+        (1, 3, {"tag": "informal"}),
+    ]
+)
 
 hpm = HivePlotMatrix.from_tags(
     graph=g,
@@ -3836,19 +3917,25 @@ hpm = HivePlotMatrix.from_tags(
 # === Example 2: round-trip (export → modify → re-import) ===
 # Start with tabular multi-tag Edges; export to networkx; modify the graph;
 # re-import via from_tags(graph=...).
-edges = Edges(data={
-    "official": pd.DataFrame({"from": [0, 1], "to": [1, 2]}),
-    "social":   pd.DataFrame({"from": [0, 2], "to": [2, 3]}),
-})
+edges = Edges(
+    data={
+        "official": pd.DataFrame({"from": [0, 1], "to": [1, 2]}),
+        "social": pd.DataFrame({"from": [0, 2], "to": [2, 3]}),
+    }
+)
 nodes = NodeCollection(
-    data=pd.DataFrame({
-        "unique_id": [0, 1, 2, 3],
-        "club":      ["A", "A", "B", "B"],
-        "rank":      [1, 2, 1, 2],
-    }),
+    data=pd.DataFrame(
+        {
+            "unique_id": [0, 1, 2, 3],
+            "club": ["A", "A", "B", "B"],
+            "rank": [1, 2, 1, 2],
+        }
+    ),
     unique_id_column="unique_id",
 )
-g_exported = nodes_edges_to_networkx(nodes, edges)   # tag attribute written by export side
+g_exported = nodes_edges_to_networkx(
+    nodes, edges
+)  # tag attribute written by export side
 # ... user adds a new edge / modifies attributes on g_exported via networkx ...
 hpm = HivePlotMatrix.from_tags(
     graph=g_exported,
@@ -3859,15 +3946,19 @@ hpm = HivePlotMatrix.from_tags(
 
 # === Example 3: custom tag_attribute_name ===
 g_custom = nx.Graph()
-g_custom.add_edges_from([
-    (0, 1, {"relationship": "manager"}),
-    (1, 2, {"relationship": "peer"}),
-])
-g_custom.add_nodes_from([
-    (0, {"club": "A", "rank": 1}),
-    (1, {"club": "A", "rank": 2}),
-    (2, {"club": "B", "rank": 1}),
-])
+g_custom.add_edges_from(
+    [
+        (0, 1, {"relationship": "manager"}),
+        (1, 2, {"relationship": "peer"}),
+    ]
+)
+g_custom.add_nodes_from(
+    [
+        (0, {"club": "A", "rank": 1}),
+        (1, {"club": "A", "rank": 2}),
+        (2, {"club": "B", "rank": 1}),
+    ]
+)
 hpm = HivePlotMatrix.from_tags(
     graph=g_custom,
     tag_attribute_name="relationship",
@@ -3878,11 +3969,13 @@ hpm = HivePlotMatrix.from_tags(
 # === Example 4: error path — graph edges missing the tag attribute ===
 g_untagged = nx.Graph()
 g_untagged.add_edges_from([(0, 1), (1, 2)])
-g_untagged.add_nodes_from([
-    (0, {"club": "A", "rank": 1}),
-    (1, {"club": "A", "rank": 2}),
-    (2, {"club": "B", "rank": 1}),
-])
+g_untagged.add_nodes_from(
+    [
+        (0, {"club": "A", "rank": 1}),
+        (1, {"club": "A", "rank": 2}),
+        (2, {"club": "B", "rank": 1}),
+    ]
+)
 try:
     HivePlotMatrix.from_tags(
         graph=g_untagged,

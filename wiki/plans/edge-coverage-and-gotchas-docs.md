@@ -145,13 +145,15 @@ No new constructor parameters or defaults. One degenerate-case behavior to pin d
 # Example data:
 from hiveplotlib.datasets import example_hive_plot
 
-hp = example_hive_plot()  # generates edges between all axes incl. repeat; built without repeat axes
+hp = (
+    example_hive_plot()
+)  # generates edges between all axes incl. repeat; built without repeat axes
 
 # Call site:
 coverage = hp.edge_coverage
-print(coverage)                 # EdgeCoverage(drawn=82, total=100, fraction=0.82)
-print(coverage.fraction)        # 0.82
-print(hp)                       # ... 100 edges (82% drawn), partition='partition_0', ...
+print(coverage)  # EdgeCoverage(drawn=82, total=100, fraction=0.82)
+print(coverage.fraction)  # 0.82
+print(hp)  # ... 100 edges (82% drawn), partition='partition_0', ...
 ```
 
 ```python
@@ -182,7 +184,9 @@ hp = HivePlot(
     partition_variable="club",
     sorting_variables="degree",
 )
-drawn, total, fraction = hp.edge_coverage  # tuple unpacking; fraction < 1 (intra-club edges hidden)
+drawn, total, fraction = (
+    hp.edge_coverage
+)  # tuple unpacking; fraction < 1 (intra-club edges hidden)
 ```
 
 (Examples written against the current branch surface: `HivePlot(graph=...)` is the keyword-only parameter shipped in the in-flight v0.28 work at `src/hiveplotlib/hiveplot.py:2084`.)

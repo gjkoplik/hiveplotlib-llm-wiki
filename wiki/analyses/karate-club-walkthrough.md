@@ -54,10 +54,10 @@ from hiveplotlib import HivePlot
 hp = HivePlot(
     nodes=nodes,
     edges=edges,
-    partition_variable="club",        # Axis assignment: faction membership
-    sorting_variables="degree",       # Node position: degree (more connected → farther from center)
-    repeat_axes=True,                 # Duplicate axes to show intra-faction edges
-    non_repeat_edge_kwargs={"color": "darkgray"}
+    partition_variable="club",  # Axis assignment: faction membership
+    sorting_variables="degree",  # Node position: degree (more connected → farther from center)
+    repeat_axes=True,  # Duplicate axes to show intra-faction edges
+    non_repeat_edge_kwargs={"color": "darkgray"},
 )
 ```
 
@@ -69,8 +69,8 @@ Key decisions:
 ### 4. Style Edges
 
 ```python
-hp.update_edges("Mr. Hi", "Mr. Hi", color="royalblue")      # Intra-faction: blue
-hp.update_edges("Officer", "Officer", color="darkorange")     # Intra-faction: orange
+hp.update_edges("Mr. Hi", "Mr. Hi", color="royalblue")  # Intra-faction: blue
+hp.update_edges("Officer", "Officer", color="darkorange")  # Intra-faction: orange
 # Inter-faction edges remain darkgray (set in constructor)
 ```
 

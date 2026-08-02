@@ -174,8 +174,8 @@ hp = HivePlot(
     sorting_variables="degree",
     node_graph_metrics="degree_centrality",
     graph_metric_backend="cugraph",  # raises InvalidGraphMetricBackendError
-)                                    # if nx-cugraph is not installed,
-                                     # listing the installed backends
+)  # if nx-cugraph is not installed,
+# listing the installed backends
 ```
 
 ### API Critic's take (planning mode)

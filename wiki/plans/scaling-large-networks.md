@@ -391,8 +391,9 @@ Recommend adding `frame_library` as a property in Workstream B; defer `to_pandas
   # TypeError to surface "this will materialize partitions one-by-one;
   # are you sure?" Default is loud-failure rather than silent inference.
   nodes = NodeCollection(data=node_ddf, unique_id_column="id", use_dask=True)
-  edges = Edges(data=edge_ddf, from_column_name="src", to_column_name="dst",
-                use_dask=True)
+  edges = Edges(
+      data=edge_ddf, from_column_name="src", to_column_name="dst", use_dask=True
+  )
 
   hp = HivePlot(nodes=nodes, edges=edges)
   # ... rest of the pipeline runs Dask-aware ...

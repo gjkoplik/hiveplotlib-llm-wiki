@@ -2,7 +2,7 @@
 title: "hiveplotlib — Python Library Source"
 type: source
 created: 2026-04-06
-updated: 2026-04-06
+updated: 2026-07-27
 sources: [hiveplotlib-python-repo]
 tags: [hiveplotlib, python, software, network-visualization]
 ---
@@ -81,7 +81,7 @@ Styling precedence (later overrides earlier):
 - **100% test coverage** strictly enforced; all warnings treated as errors.
 - **Numba acceleration** for Bézier curves — parallel edge construction across CPU cores.
 - **float32 arrays** for memory efficiency.
-- **Type hints throughout** (Union[X, Y] syntax for Python 3.10+ compat).
+- **Type hints throughout** (PEP 604 `X | Y` union syntax).
 
 ## See Also
 

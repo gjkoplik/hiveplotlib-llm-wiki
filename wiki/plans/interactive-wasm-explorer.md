@@ -79,7 +79,10 @@ node_data = pd.concat(
             columns={"origin_country": "country", "origin_continent": "continent"}
         ),
         data[["destination_country", "destination_continent"]].rename(
-            columns={"destination_country": "country", "destination_continent": "continent"}
+            columns={
+                "destination_country": "country",
+                "destination_continent": "continent",
+            }
         ),
     ]
 ).drop_duplicates()

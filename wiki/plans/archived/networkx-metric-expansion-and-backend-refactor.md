@@ -122,7 +122,8 @@ hp = HivePlot(
     edge_graph_metrics="jaccard_coefficient",
 )
 hp.update_edge_plotting_keyword_arguments(
-    array="jaccard_coefficient", cmap="plasma",
+    array="jaccard_coefficient",
+    cmap="plasma",
 )
 ```
 
@@ -246,7 +247,8 @@ Re-walked the examples after the orchestrator's refinement pass and after the us
       edge_graph_metrics="jaccard_coefficient",
   )
   hp.update_edge_plotting_keyword_arguments(
-      array="jaccard_coefficient", cmap="plasma",
+      array="jaccard_coefficient",
+      cmap="plasma",
   )
   ```
 
