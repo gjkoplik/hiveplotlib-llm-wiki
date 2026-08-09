@@ -1,8 +1,9 @@
 # Plan: lower the default curve resolution (`num_steps` / `num_steps_per_edge`)
 
 **Status: exploring.** Feasibility measured 2026-08-01 (numbers and figures below). No code changed.
-Not dispatchable yet: the grill has not run, the adversary has not read it, and the target number is
-an open decision.
+No code workstream is dispatchable yet: the grill has not run, the adversary has not read it, and the
+target number is an open decision. Workstream A (evidence only, no code) is the exception and can run
+in parallel with both.
 
 ## Goal
 
@@ -36,8 +37,18 @@ deliberately, not reinvent it.
 ## Alignment (grill)
 
 ```
-Not yet run — recommended before dispatch. The target number is a taste call that
-should not be settled by the model.
+Not yet run — recommended before dispatch. Three open decisions for the agenda,
+none of which should be settled by the model:
+  1. The target number (see "Candidate numbers"; the plan recommends 50 on
+     headroom grounds, deliberately not settled).
+  2. Whether the fused rasterize-from-ids path should carry its own lower
+     default, given that it never persists the curves it builds (see the
+     deferred follow-up on that path under "Plan amendments"). Gated on an
+     unmeasured fused-path memory sweep, recorded there.
+  3. If 2 is taken up: whether it is acceptable that the same `HivePlot`
+     renders at two fidelities depending on whether `construct_curves` was
+     called first. The paths already differ in what they persist, so this is
+     defensible, but it needs deliberate documentation rather than discovery.
 ```
 
 ## Failure modes
@@ -110,44 +121,112 @@ buying speed but stop buying peak memory. Worth knowing before over-optimizing t
 
 ### Visual evidence
 
-Figures in the session scratchpad (not committed):
+**Methodology note, load-bearing.** A first pass compared candidates in side-by-side subplots. That
+is invalid for this question: at fixed figure dpi, each hive plot in an N-panel composite occupies
+~600px, where a real standalone plot gets 1000px (matplotlib default `figsize=(10,10)` at dpi 100)
+or 1500px (datashader default dpi 150). Shrinking a render hides precisely the faceting the test
+exists to find, and the inline review downscaled a further ~1.5x on top. Net understatement roughly
+2.5-3x. Every figure below is rendered **standalone through the library's own default canvas**, one
+file per candidate, and compared at native resolution. Composite figures are not evidence here.
 
-`.../scratchpad/figs/`
+Files in the session scratchpad (not committed): `.../scratchpad/standalone/` and
+`.../scratchpad/pixelzoom/`.
 
-- `A_full_view.png` — dense 2k/5k plot, full view, n ∈ {100, 50, 25, 16, 8}. All five read as the
-  same figure; density hides everything. Weak test, included for completeness.
-- `E_sparse_full.png` — 60 nodes / 90 edges, opaque 1.4pt lines, same candidates. **The aesthetic
-  call.** 100/50/25/16 are indistinguishable; n=8 shows slight angularity on the long sweeping arcs.
-- `F_worst_curve.png` — **the decisive geometry test.** The single worst curve in the plot, every
-  candidate drawn over the true curve with sample points marked, plus zooms at 82x and 410x. At an
-  18px-wide crop, n=8 is clearly off the true curve and 50/25/16 are not. At a 4px-wide crop, 25 and
-  16 separate visibly and 50 still hugs it.
-- `G_datashader_delta.png` — **the at-scale test.** 25k/250k rendered through the real datashader
-  entry point, plus per-pixel difference maps against n=100. Differences are confined to a
-  one-pixel-wide rim on the outer envelope and a crescent at the inner hole. Mean |Δ| 0.46-0.56 of
-  255; p99 of 3-4; only 0.30-0.37% of pixels differ by more than 8/255.
+**Whole-figure difference vs n=100, matplotlib standalone (1000x1000 native), sparse 60/90 plot:**
 
-An earlier version of the datashader panel appeared to show real differences in silhouette and
-shading. That was an artifact of compositing into subplots, not a real effect; `G` supersedes it and
-is the measurement to trust.
+| n | mean \|Δ\| | p99 \|Δ\| | max \|Δ\| | px >8/255 | px >32/255 |
+|---|---|---|---|---|---|
+| 50 | 0.045 | 2 | 7 | 0.00% | 0.00% |
+| 25 | 0.208 | 7 | 29 | 0.77% | 0.00% |
+| 16 | 0.548 | 20 | 69 | 2.41% | 0.16% |
+| 8 | 2.555 | 84 | 202 | 4.54% | 2.90% |
 
-**Not yet shown, and needed before sign-off:** vector output. Every figure above is a raster. A
+**Worst 120x120 native window in that figure** (located by max deviation, same window for all
+candidates, magnified 6x nearest-neighbour in `pixelzoom/zoom_n*.png`):
+
+| n | mean \|Δ\| | max \|Δ\| | px >8/255 |
+|---|---|---|---|
+| 50 | 0.29 | 6 | 0.00% |
+| 25 | 1.31 | 27 | 6.06% |
+| 16 | 3.49 | 64 | 14.71% |
+| 8 | 16.44 | 191 | 24.49% |
+
+At 6x pixel magnification n=50 is indistinguishable from n=100. n=16 shows a small number of curves
+shifted by a pixel. n=8 shows both positional shift and visible straightening on the long arcs.
+
+**datashader standalone (1500x1500 native), 25k/250k:** barely moves at any candidate. Even n=8 has
+p99 of 4/255; max |Δ| of 106-143 is confined to a one-pixel rim on the outer envelope and a crescent
+at the inner hole.
+
+| n | mean \|Δ\| | p99 \|Δ\| | px >8/255 |
+|---|---|---|---|
+| 50 | 0.210 | 2 | 0.17% |
+| 25 | 0.236 | 2 | 0.18% |
+| 16 | 0.257 | 3 | 0.22% |
+| 8 | 0.429 | 4 | 0.48% |
+
+**The inversion worth recording:** the sensitive case is the *sparse vector* plot, not the dense
+at-scale one. Density rendering averages over many overlapping curves, so a single curve's deviation
+washes out; a sparse plot draws each curve as itself with nothing to hide behind. Any future check of
+this kind should lead with the sparse case.
+
+**The shape of the error matters as much as its size.** The whole-figure diff maps
+(`diffmaps/diff_n*_amp4x.png`) show that at 50/25/16 the error is thin ghosting along curve edges:
+the curve is in nearly the same place and its antialiased boundary has shifted a fraction of a pixel.
+That is the benign mode, and it is why n=16 survives eyeballing better than its numbers suggest. At
+n=8 the diff thickens and picks up structure at segment joints, which is the mode a reader actually
+perceives as polygonal.
+
+### Headroom: what the fidelity numbers held fixed
+
+Every number above was measured at `control_rho_scale=1`. That is a documented public parameter whose
+job is to make edges more or less convex, i.e. to move exactly the quantity that sets required n.
+Sweeping it on the default 1500px canvas:
+
+| `control_rho_scale` | max required n | vs default | deviation @ n=50 | @ n=25 | @ n=16 |
+|---|---|---|---|---|---|
+| 0.5 | 20 | 1.25x | 0.069 px | 0.27 px | 0.73 px |
+| 1.0 (default) | 16 | 1.00x | 0.046 px | 0.19 px | 0.49 px |
+| 2.0 | 23 | 1.44x | 0.096 px | 0.40 px | 1.03 px |
+| 4.0 | 26 | 1.62x | 0.126 px | 0.54 px | 1.35 px |
+
+The default sits near a **minimum**: moving the control point either outward or inward raises the
+requirement. So the shipped default has to absorb two independent multipliers the measurements held
+constant, canvas size (as `sqrt`) and `control_rho_scale` (up to 1.62x), and they compound.
+
+At n=50 the worst combination tested stays around 0.13 px, and roughly 0.35 px even at a 4000px
+export. At n=25 the same combination reaches 0.54 px on the *default* canvas alone. At n=16 it is
+1.35 px on the default canvas, which is visible faceting with no signal to the user that a knob
+exists. Because deviation goes as `n²`, the 3x in n between 16 and 50 is ~10x in fidelity headroom.
+
+**Not yet shown, and needed before sign-off:** vector output. Everything above is a raster. A
 matplotlib PDF/SVG at high zoom is the case where faceting would survive that a raster metric cannot
 see.
 
 ## Candidate numbers
 
-| | fidelity @ default | fidelity @ 4000px | speed (large ds) | curve memory | read |
+| | deviation @ default | @ 4000px | worst-window px >8/255 | speed (large ds) | curve memory |
 |---|---|---|---|---|---|
-| **50** | 0.046 px | 0.12 px | 1.32x | 2.0x less | conservative; safe at any realistic export size |
-| **25** | 0.194 px | 0.52 px | 1.64x | 3.9x less | aggressive; clean at default, thin margin on high-dpi export |
-| 16 | 0.496 px | 1.32 px | 1.96x | 5.9x less | meets the half-pixel bound at default only, no margin |
+| **50** | 0.046 px | 0.12 px | **0.00%** | 1.32x | 2.0x less |
+| **25** | 0.194 px | 0.52 px | 6.06% | 1.64x | 3.9x less |
+| 16 | 0.496 px | 1.32 px | 14.71% | 1.96x | 5.9x less |
+| 8 | 2.276 px | 6.07 px | 24.49% | — | 11.2x less |
 
-**Recommendation: 50.** It is invisible in every test run, keeps sub-quarter-pixel fidelity even at a
-4000px export, captures the whole peak-RSS win on the large route (which plateaus below 50 anyway),
-and needs no caveat about high-dpi output. 25 is defensible if we are willing to lean on
-documentation the way the dpi change did, but it trades away the "silently ugly on export" safety
-margin for speed the plateau says we partly cannot bank.
+**Recommendation: 50.** At true standalone resolution not a single pixel in the whole figure differs
+from n=100 by more than 7/255, and nothing anywhere exceeds 8/255. It holds sub-quarter-pixel
+fidelity even at a 4000px export, captures the entire peak-RSS win on the large route (which
+plateaus below 50 anyway), and needs no caveat about high-dpi output.
+
+The corrected measurement **weakened the case for 25**, which the earlier composite had flattered:
+6% of pixels in the worst window differ by more than 8/255, where 50 has literally none. 25 remains
+defensible if we are willing to lean on documentation the way the dpi change did, but it is a real
+visual compromise rather than a free one, and part of what it buys is speed the memory plateau says
+we cannot bank.
+
+The stronger argument for 50 is **headroom, not appearance** (see "Headroom" above). 16 and 25 both
+look fine in the configuration that was measured; neither has margin for two multipliers users
+legitimately turn (canvas size and `control_rho_scale`), which compound and which the user gets no
+warning about. 50 absorbs the worst tested combination and still lands around a tenth of a pixel.
 
 Open for the grill. Do not treat the recommendation as settled.
 
@@ -160,8 +239,21 @@ All literal `100` curve-resolution defaults:
 - `src/hiveplotlib/hiveplot.py:2650` — `num_steps_per_edge`
 - `src/hiveplotlib/hiveplot_matrix.py:1068`, `:1453`, `:1922` — `num_steps_per_edge`
 - `src/hiveplotlib/p2cp.py:231` — `num_steps`
-- `src/hiveplotlib/hiveplot.py:1827` — docstring citing "roughly 800 MB per 1,000,000 edges at the
-  default `num_steps=100`", which becomes wrong on the same commit
+
+Prose carrying arithmetic derived from the current default, all of which becomes wrong on the same
+commit (verified 2026-08-02; these are correctness fixes, not discretionary rewording):
+
+- `src/hiveplotlib/hiveplot.py:1824-1825` — `construct_curves` docstring citing "roughly 800 MB per
+  1,000,000 edges at the default ``num_steps=100``". (Earlier drafts of this plan cited `:1827`;
+  corrected against the working branch.)
+- `examples/creating_hive_plots_from_dask.ipynb`, the "## Partition Sizing" markdown cell — "about
+  808 bytes per edge at the default `num_steps=100`", the `n * 808` and
+  `thread count * largest partition's row count * 808 bytes` formulas, and the worked "a single
+  10-million-edge partition holds about 8 GB of curves" example. Owned by Workstream G; must ship
+  with Workstream C.
+
+One expected survivor of the sweep, recorded under Holdouts below: the `DaskComputationError` message
+in `viz/datashader.py` states the same budget symbolically and needs no edit.
 
 Open question for the grill: should the low-level `utils.bezier*` helpers move too, or keep 100 and
 let only the user-facing entry points change? They are public API but are the primitive, not the
@@ -223,6 +315,12 @@ Pending — invoke the adversary in planning mode (cold, before grill-me).
 Pending.
 ```
 
+## Notebook review
+
+```
+Pending — invoke editorial-critic in post-implementation mode after Workstream G ships.
+```
+
 ## Viz review
 
 ```
@@ -234,11 +332,15 @@ figures against the viz-quality-bar skill.
 
 ### Workstream A: vector-output fidelity check
 
-**Status:** not started
+**Status:** not started. Runnable now, in parallel with the adversary and the grill (re-scoped
+2026-08-02; see Amendments).
 **Files:** none (investigation)
-**Done when:** matplotlib PDF/SVG output at the candidate number is compared against n=100 at
-publication zoom, and either clears the maintainer's eye or produces a documented counterexample.
-This is the one evidence gap remaining; everything else is measured.
+**Done when:** matplotlib PDF/SVG output at **each of 50, 25, and 16** is compared against n=100 at
+publication zoom, and each either clears the maintainer's eye or produces a documented
+counterexample. Sweeping the shortlist rather than a single number is what makes A independent of
+Workstream B instead of circular with it: A produces the evidence the grill needs to settle the
+number, and settles nothing itself. This is the one evidence gap remaining for the shipped default;
+everything else is measured.
 
 ### Workstream B: settle the number
 
@@ -250,15 +352,21 @@ its justification.
 
 **Status:** not started
 **Files:** the "Patterns this replaces" list
-**Done when:** every listed default moves, `hiveplot.py:1827`'s memory figure is recomputed, and the
-replace-and-sweep grep finds no surviving literal.
+**Done when:** every listed default moves, `hiveplot.py:1824-1825`'s memory figure is recomputed, and
+the replace-and-sweep grep finds no surviving literal. C is not complete on its own: the same sweep
+reaches `examples/creating_hive_plots_from_dask.ipynb`'s "## Partition Sizing" arithmetic, which is
+notebook-author's surface (Workstream G) and must land in the same change. See Amendment 2026-08-02.
 
 ### Workstream D: docstrings and the escape hatch
 
 **Status:** not started
-**Files:** `src/hiveplotlib/hiveplot.py`, `hiveplot_matrix.py`, `p2cp.py`, docs prose
-**Done when:** the `num_steps` / `num_steps_per_edge` docstrings explain the explore-vs-publish trade
-and name the way to raise it, matching how the v0.27.0 `dpi` change documented the same trade.
+**Scope:** docstrings only. Notebook prose split to Workstream G (see Amendment 2026-08-02).
+**Files:** `src/hiveplotlib/hiveplot.py`, `hiveplot_matrix.py`, `p2cp.py`
+**Done when:** the `num_steps` / `num_steps_per_edge` docstrings present the default as the middle of
+a usable range rather than a ceiling, naming both directions: raise it when a figure is going to
+publication (the v0.27.0 `dpi` pattern), lower it further when scaling to large networks. Today's
+text (`hiveplot.py:1831-1832`, "Larger numbers will result in smoother curves when plotting later,
+but slower rendering") states the trade without telling anyone when to move it either way.
 
 ### Workstream E: changelog and release framing
 
@@ -276,7 +384,163 @@ is either answered or explicitly deferred.
 gate's tolerance question is resolved; ASV scenarios are re-captured so the history step attributes
 to this change rather than to the next unrelated merge.
 
+## Plan amendments
+
+### Added workstream G: notebook prose for the resolution range
+
+**Date:** 2026-08-02
+**Trigger:** Maintainer ask — document the knob in example notebooks as well as docstrings, framed as
+two opposite-direction moves from the shipped default rather than one.
+**Status:** blocked on Workstream B (the number), which is itself blocked on the grill and Workstream A
+**Files:** `examples/creating_hive_plots_from_dask.ipynb`,
+`examples/hive_plots_for_large_networks.ipynb`, `examples/customizing_edge_curves.ipynb` (candidate)
+
+Split out of Workstream D rather than widening it: notebook prose is notebook-author's surface and
+draws an editorial-critic post-impl pass, docstrings are docs-engineer's and draw none. D and G touch
+disjoint file sets (`src/` vs `examples/`) and can run in either order once the number is settled.
+
+**Done when:**
+
+- `examples/creating_hive_plots_from_dask.ipynb`, "## Partition Sizing": the default-derived
+  arithmetic is recomputed (the 808-bytes-per-edge figure, both `808` formulas, and the
+  "10-million-edge partition holds about 8 GB" worked example). This item is a correctness fix, not
+  teaching prose; it ships in the same change as Workstream C and is never released with C alone.
+- `examples/hive_plots_for_large_networks.ipynb` carries the lower-it-at-scale message as a sibling
+  of its existing "Lower the Alpha Value" / "Thinner Lines" knob sections. It names the direction and
+  the shape of the win (render time and curve memory; construction time is roughly flat) without
+  reproducing this plan's benchmark tables as claims a reader cannot re-derive on their own data.
+- The raise-it-for-publication direction is stated where a reader first meets the knob. Whether that
+  is `customizing_edge_curves.ipynb` (genre fit: it is the curve-geometry notebook, and its
+  `control_rho_scale` section is the parameter this plan's headroom analysis found interacts with
+  required resolution) or docstrings alone is the notebook author's call against genre; record which,
+  either way.
+- `docs/source/_llms/llms.txt`: **no new entry and no edit.** Explicit call, made here so it is not
+  re-adjudicated downstream: this is a tuning knob on an existing capability, not a new capability,
+  class, backend, or conceptual entry point; both target notebooks already carry entries whose
+  one-line descriptions ("tune the curvature of edges between axes", "scale hive plots to large edge
+  counts", "Covers partition sizing and failure guidance") stay accurate after the change; and no
+  page is renamed or removed.
+- Only `examples/` notebooks are edited. `docs/source/notebooks/` and `docs/source/gallery_examples/`
+  are generated.
+- Any new render is justified against `make test-nb` runtime: prose-first, at most one new figure,
+  and any new figure goes to viz-critic.
+- No process references in shipped prose (no plan, workstream, or grill references, no dates).
+
+### In-scope tweak: Workstream D narrowed to docstrings
+
+**Date:** 2026-08-02
+**Trigger:** Same maintainer ask (the documentation split above).
+**Workstream affected:** D, docstrings and the escape hatch
+**Change:** Files drop "docs prose"; done-when moves from one direction ("explain the explore-vs-publish
+trade and name the way to raise it") to two ("the default is the middle of a usable range: raise for
+publication, lower for scale"), and now cites the specific text it supersedes
+(`hiveplot.py:1831-1832`).
+
+### In-scope tweak: the replace-and-sweep reaches into `examples/`
+
+**Date:** 2026-08-02
+**Trigger:** Amendment feasibility check for the notebook scope, which found a second prose site
+carrying arithmetic derived from `num_steps=100`.
+**Workstream affected:** C, change the defaults (cross-referencing G)
+**Change:** "Patterns this replaces" gains `examples/creating_hive_plots_from_dask.ipynb`'s
+"## Partition Sizing" cell and a holdout for the symbolic `DaskComputationError` message at
+`viz/datashader.py:840`; the `hiveplot.py` citation is corrected `:1827` → `:1824-1825` against the
+working branch; C's done-when now states it cannot complete without G's notebook item.
+
+### Deferred follow-up: a distinct curve-resolution default for the fused rasterize-from-ids path
+
+**Date:** 2026-08-02 (re-scoped the same day; see "Superseded framing" below)
+**Trigger:** Maintainer ask, explicitly *not* to be formalized now.
+**Target:** the grill, as an open design question. Not a workstream, no done-when, nothing to
+dispatch. If adopted it becomes a plan of its own: it is net-new user-facing API surface, which this
+plan by construction does not have, and that claim under "API usage examples" must keep holding.
+**Rationale:** the narrowed question is well-formed where the broad one was not, but the regime it
+turns on has not been measured, and whether a path-dependent default is acceptable is a taste call.
+
+**The question, in the maintainer's framing:** once you have made the edges, you have made the edges,
+so you cannot work backwards. But there is the datashader-at-scale case where you are *not* saving
+the edges. In that case you could have a different default, and that is the case where it matters
+most, because that is the scale where blowing up memory is the worry.
+
+So the question is not "should the datashader *backend* use a lower number" but **should the fused
+rasterize-from-ids path** (edge subsets holding stored ids with no constructed curves, whose curves
+are built during rasterization and immediately discarded, never persisted) **carry its own lower
+default.**
+
+Evidence in favour, already measured above: datashader is the **insensitive** backend. Standalone at
+1500x1500, even n=8 gives a p99 of 4/255, because density rendering averages over overlapping curves.
+It also carries the largest speedup (1.96x at the large scale at n=16 vs 100). The sensitive case is
+the sparse vector backends, which is the inversion recorded under "Visual evidence".
+
+**The narrowing dissolves both objections the broad framing carried.**
+
+- Keying off the viz backend was unsound because `self.backend` is mutable after construction
+  (`hiveplot.py:3932-3943`, `set_viz_backend`) and read only at render dispatch (`:5027+`), so
+  construct-as-datashader → switch → render-as-matplotlib reached this plan's own "silently ugly on
+  export" mode through a supported call sequence. That does not apply here: nothing keys off
+  `self.backend`, and nothing is decided at construction. The condition is the **path** (ids present,
+  curves absent), which is observable at the moment it matters and cannot be invalidated later by a
+  backend switch, because the curves it governs never outlive the rasterization that built them.
+- A render-time parameter being inert when curves are already persisted was an API-coherence flaw
+  under the broad framing. Under the narrow one it **is the scope definition**: the knob exists only
+  on the path where it can mean anything. The documented behavior (`viz/datashader.py:338-343`,
+  echoed at `:937-941`, "Curves persisted by ``construct_curves`` ... are returned as stored,
+  untouched") now reads as the boundary of the feature rather than a contradiction of it.
+
+**Concrete prerequisite, unmeasured.** Any distinct number needs a fused-path memory-vs-`num_steps`
+sweep first. The peak-RSS plateau in the Memory table (large datashader route: 2471 MiB at n=100 →
+2158 at n=50, then flat at ~2160 for 25 and 16) was measured with `construct_curves` called first,
+i.e. on the **persisted** path. The fused path has a different profile: curves are transient and peak
+is bounded by the largest chunk under `stream_chunk_threshold`. The regime the maintainer names as
+mattering most is therefore exactly the one not yet measured, and the plateau may not hold there. The
+sweep must run one isolated process per candidate and must not call `construct_curves` first;
+peak-RSS is monotone within a process, so a persisted run preceding a fused run in the same process
+would contaminate the fused figure with the persisted one's epoch.
+
+Deliberately **not** folded into Workstream A. A is a matplotlib vector-fidelity check whose evidence
+gates the shipped default (Workstream B); this is a datashader memory measurement whose evidence
+gates only a deferred question. Bundling them would make A's completion depend on evidence for a
+deferred item and would quietly pull that item back into the dispatchable set.
+
+**Coherence wrinkle, for the grill** (also listed under "Alignment (grill)"): a distinct fused-path
+default means the same `HivePlot` renders at two different fidelities depending on whether the user
+called `construct_curves` first. Defensible, since the paths already differ in what they persist, but
+it is the kind of thing that has to be documented deliberately rather than discovered.
+
+Also note, if this is ever taken up: it would put a third spelling of the same concept in front of
+users, on top of the `num_steps` / `num_steps_per_edge` inconsistency already recorded under "Naming
+audit".
+
+**Superseded framing (kept as record).** This entry was first written the same day as "backend-keyed
+or render-time curve resolution for datashader," weighing two mechanisms: keying the constructor
+default off `HivePlot.__init__(backend=...)`, and adding a render-time `num_steps` to the datashader
+entry points. Both were recorded as problematic, for the two reasons dissolved above. The maintainer
+narrowed the question to the fused path, which is why those objections no longer bind; the broad
+framing is not the live question and should not be re-argued.
+
+## Holdouts
+
+Expected survivors of the replace-and-sweep grep:
+
+- `src/hiveplotlib/viz/datashader.py:840`: the `DaskComputationError` message states the transient
+  per-partition budget symbolically (`partition_rows * (num_steps + 1) * 8`), not as a number derived
+  from the default, so it stays correct across the change. Do not "fix" it to match the two prose
+  sites that do carry arithmetic.
+
 ## Implementation log
 
 - 2026-08-01: Plan opened. Feasibility measured (fidelity, runtime, memory, four figure sets). No
   code changed.
+- 2026-08-01: Visual evidence redone at true standalone resolution after the maintainer caught that
+  side-by-side subplots undersample each plot ~2.5-3x. Numbers in "Visual evidence" replaced; the
+  case for 25 weakened, the case for 50 strengthened. Recorded the sparse-vs-dense inversion.
+- 2026-08-02: Amended (maintainer scope additions). Documentation split into D (docstrings) and G
+  (notebook prose), both framed as a two-direction range; the datashader-specific default recorded as
+  an open design question for the grill, not a workstream. Sweep found a second default-derived
+  arithmetic site in `examples/creating_hive_plots_from_dask.ipynb`. Still no code changed.
+- 2026-08-02: Amended again (maintainer). Workstream A re-scoped to sweep 50/25/16 rather than "the
+  candidate number", making it independent of B and runnable now. The deferred design question
+  narrowed from "backend-keyed resolution for datashader" to "a distinct default for the fused
+  rasterize-from-ids path", which dissolves both mechanism objections; recorded its unmeasured
+  prerequisite (a fused-path memory sweep) and its two-fidelity coherence wrinkle. Still deferred,
+  still no workstream.
