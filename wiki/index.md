@@ -18,7 +18,7 @@ updated: 2026-07-06
 ## Sources
 
 - [[hiveplotlib-python|hiveplotlib — Python Library Source]] — Comprehensive Python library for hive plots; 6 backends, 50 examples, 100% test coverage; v0.28 streamlines NetworkX integration (1 source)
-- [[hiveplotlib-javascript|hiveplotlib-javascript — D3 Visualization Source]] — JavaScript/D3 companion for browser rendering of hiveplotlib JSON exports (1 source)
+- [[sources/hiveplotlib-javascript|hiveplotlib-javascript — D3 Visualization Source]] — JavaScript/D3 companion for browser rendering of hiveplotlib JSON exports (1 source)
 - [[krzywinski-2012|Krzywinski et al. 2012]] — Foundational paper introducing hive plots (1 source)
 - [[perez-2021-hype|Perez et al. 2021 — HyPE]] — Hive Panel Explorer: interactive panel of hive plots for parameter exploration (1 source)
 - [[bostock-2012-d3-hive-plots|Bostock 2012 — D3 Hive Plots]] — Influential D3.js implementation with Flare dependency graph (1 source)
@@ -44,7 +44,7 @@ updated: 2026-07-06
 ## Entities
 
 - [[hiveplotlib]] — **Main hub.** Python library for hive plots, created by Gary Koplik (2 sources)
-- [[hiveplotlib-javascript]] — JavaScript/D3 visualization library for hiveplotlib JSON exports (1 source)
+- [[entities/hiveplotlib-javascript|hiveplotlib-javascript]] — JavaScript/D3 visualization library for hiveplotlib JSON exports (1 source)
 - [[Martin Krzywinski]] — Creator of hive plots and Circos (3 sources)
 - [[Mike Bostock]] — Creator of D3.js, published influential hive plot implementation (1 source)
 - [[statsbomb|StatsBomb]] — Soccer analytics company; its free open event data (via statsbombpy) is behind the soccer-passing exploration (0 sources — maintainer domain knowledge)

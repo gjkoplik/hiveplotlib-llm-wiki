@@ -46,6 +46,6 @@ Single source file (`hive_plots_d3_viz.js`, ~650 lines, ESM module) with four re
 
 ## See Also
 
-- [[hiveplotlib-javascript]] — Entity page
+- [[entities/hiveplotlib-javascript|hiveplotlib-javascript]] — Entity page
 - [[hiveplotlib]] — Python library (generates the JSON input)
 - [[hive-plot]] — Core concept
