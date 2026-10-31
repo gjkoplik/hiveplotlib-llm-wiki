@@ -122,7 +122,7 @@ Other relevant prior thinking lives in design docs and source pages rather than 
 - `wiki/wiki/sources/hiveplotlib-python.md` lines 79-84 — documents the "minimal base deps: matplotlib, numpy, pandas only" stance. The Workstream 2 decision on whether narwhals joins core deps is a deliberate deviation from this and needs explicit justification in the eventual ADR.
 - `wiki/wiki/analyses/gnn-heterogeneity-hive-plots.md` line 113 — names OGB-arxiv (169k nodes, 40 classes) as the "large-scale stress test (datashader backend)" target. Workstreams 2+3 are the unblock (1.16M edges ≈ 1 GB of curves is feasible today; removing the transient and resident memory costs is what changes scale); Workstream 1 is the structural precursor. *(Attribution corrected 2026-07-03; previously claimed "Workstream 1 is the unblock.")*
 - `wiki/wiki/analyses/cora-prototype-plan.md` lines 411-434 — "Phase 5: Iterate and Scale" depends on the datashader path holding up at OGB-arxiv scale. Direct dependency on Workstreams 2+3 (same 2026-07-03 attribution correction).
-- `wiki/wiki/entities/hiveplotlib.md` lines 53-56 — "Development Priorities" does not currently list scaling. Entity page updates in the post-task research-liaison pass.
+- `wiki/wiki/entities/hiveplotlib.md` lines 53-56 — "Development Priorities" does not currently list scaling. Entity page updates in the post-task record-keeper pass.
 - `wiki/wiki/concepts/edge-rendering.md` lines 39-46 — "Rendering Pipeline" documents the four-stage pipeline. Workstream 1 changes the shape of step 4 for the datashader backend; the concept page gains a note on chunked aggregation but does not change overall shape.
 - `wiki/wiki/concepts/applications-cybersecurity.md` lines 19-23 — DDoS-classification ML-featurization use case (Rivas 2019, Guarino 2020, Bragg 2025) is where billion-edge plots could plausibly arise.
 - `wiki/wiki/sources/perez-2021-hype.md` — HyPE at 1,880 OTUs / 13,605 edges as state-of-the-art comparator. Useful framing for "several orders of magnitude beyond prior tools" when writing the eventual ADR(s).
@@ -253,7 +253,7 @@ Rationale:
 
 - Narwhals is pure-Python with no compiled extensions, no platform-specific binaries, and no threading layer. The risk profile that justified keeping numba optional (compiled wheels, segfaults across platforms, parallelism complexity) does not apply.
 - Optional narwhals would require conditional code paths that CI either tests twice (matrix doubling) or doesn't test (silent rot). Core narwhals is paradoxically the lower-CI-complexity choice.
-- The wiki's documented "minimal base deps: matplotlib, numpy, pandas only" stance (`wiki/wiki/sources/hiveplotlib-python.md:79-84`) is a deliberate deviation. The post-task research-liaison pass should update that source page to acknowledge narwhals as a pure-Python dispatcher in the core deps.
+- The wiki's documented "minimal base deps: matplotlib, numpy, pandas only" stance (`wiki/wiki/sources/hiveplotlib-python.md:79-84`) is a deliberate deviation. The post-task record-keeper pass should update that source page to acknowledge narwhals as a pure-Python dispatcher in the core deps.
 - A brief design note in `CLAUDE.md` documents the abstraction layer so future maintainers don't relitigate the decision.
 
 ### Workstream B default: narwhals usage pattern is pass-through, not opinionated-internal
@@ -2768,7 +2768,7 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - `runners/performance/...` (extend the datashader sweep to validate at 10M+ and add peak-memory measurement; coordinate with the harness plan)
 - `CHANGELOG.rst` (entry for the refactor and the new parameter)
 - `docs/source/...` autodoc for the three datashader functions (signature gains `stream_chunk_threshold`; docstring grows a note on memory characteristics and the var/std carve-out)
-- `wiki/wiki/concepts/edge-rendering.md` lines 39-46 ("Rendering Pipeline" gains note on chunked aggregation; post-task research-liaison pass)
+- `wiki/wiki/concepts/edge-rendering.md` lines 39-46 ("Rendering Pipeline" gains note on chunked aggregation; post-task record-keeper pass)
 
 **Done when:**
 - The three datashader entry points accept `stream_chunk_threshold: Optional[int] = None`. Default `None` auto-decides by edge count; an explicit value forces the switch point. The single-shot path remains the default for the common (small) case.
@@ -2803,7 +2803,7 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - `benchmarks/benchmarks.py` (add the matplotlib-backend render canary `time_` benchmark; 2026-07-03 amendment)
 - `CHANGELOG.rst` (entry)
 - `docs/source/...` (note the fused path and its resident-memory characteristics)
-- `wiki/wiki/concepts/bezier-curves.md` (post-task research-liaison pass; note the fused build avoids persisting all curves)
+- `wiki/wiki/concepts/bezier-curves.md` (post-task record-keeper pass; note the fused build avoids persisting all curves)
 - `src/hiveplotlib/viz/input_checks.py` + `src/hiveplotlib/viz/{matplotlib,bokeh,plotly,holoviews}.py` and their tests (2026-07-04 touch-up: ids-only warning, item 2 of the disposition amendment)
 
 **Done when:**
@@ -2842,7 +2842,7 @@ Workstreams are sequenced as a dependency chain. Each is its own MR with its own
 - `tests/node_test.py`, `tests/edges_test.py`, `tests/hiveplot_test.py` (extend with polars-backend cases for input-boundary methods); `tests/frames_test.py` (boundary-helper units) and `tests/polars_test.py` (the polars twin battery) — the latter two added to this list 2026-07-04, post-impl disposition bookkeeping fix
 - `CHANGELOG.rst` (entry naming the polars/narwhals support and the deps decision)
 - `docs/source/...` autodoc updates for `NodeCollection`, `Edges` (note narwhals-supported frame acceptance, "returns whatever you passed")
-- `wiki/wiki/entities/hiveplotlib.md` (post-task research-liaison pass; "Development Priorities" gains scaling)
+- `wiki/wiki/entities/hiveplotlib.md` (post-task record-keeper pass; "Development Priorities" gains scaling)
 - `wiki/wiki/sources/hiveplotlib-python.md` lines 79-84 (post-task; "minimal base deps" note expanded to acknowledge narwhals as a pure-Python dispatcher)
 
 **Done when:**

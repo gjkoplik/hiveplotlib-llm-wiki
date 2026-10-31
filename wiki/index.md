@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-07-06
+updated: 2026-10-31
 ---
 
 # Hive Plot Research Wiki — Index
@@ -9,6 +9,12 @@ updated: 2026-07-06
 ## Overview
 
 - [[overview]] — High-level synthesis of the wiki's current state of knowledge
+
+## Specs
+
+Signed statements of intent, one page each: the outcome in a user's vocabulary plus the literal call a user types. Signed before any plan exists; a change is a dated re-sign. Conventions in [[specs/README|specs/]].
+
+- [[specs/lower-default-curve-resolution|Lower the default curve resolution to 50]] — every hive plot samples each edge at 50 points instead of 100, with nothing new to type; the escape hatch is `num_steps_per_edge=100` at construction. Signed 2026-08-31. Served by `plans/lower-default-curve-resolution.md`.
 
 ## Architecture Decision Records
 
@@ -40,6 +46,10 @@ updated: 2026-07-06
 - [[aron-2020-gnps|Aron et al. 2020 — GNPS Molecular Networking]] — Force-directed MS/MS molecular networks; in-browser view shows one molecular family at a time (the tooling gap) (0 sources — web research)
 - [[scalfani-2022-chemical-space-networks|Scalfani et al. 2022 — Chemical Space Networks]] — CSNs default to Fruchterman-Reingold force-directed layout, no spectral component (0 sources — web research)
 - [[inoue-2010-diffusion-ppi|Inoue et al. 2010 — Diffusion Spectral Clustering of PPI]] — Radial spectral embedding of PPI networks; closest spatial analog, but a scatter not a hive (0 sources — web research)
+- [[tabacof-2013-connectome-hive-plots|Tabacof, Busbice & Larson 2013 — C. elegans Hive Plots]] — First published connectome hive plot (sensory / interneuron / motor axes, "beyond the hairball"); the prior art the bioinformatics connectome figure re-tells (1 source)
+- [[cook-2019-both-sexes-connectome|Cook et al. 2019 — Both C. elegans Sexes]] — WormWiring whole-animal connectomes; source of the neuron class lists and the dimorphism figure the sex-comparison hive plots benchmark against (1 source)
+- [[yu-gerstein-2006-regulatory-hierarchy|Yu & Gerstein 2006 — Regulatory Hierarchy]] — Origin of the master-regulator / middle-manager / workhorse vocabulary Krzywinski later applied to RegulonDB (1 source)
+- [[kobourov-2018-same-stats-different-graphs|Chen et al. 2018 — Same Stats, Different Graphs]] — Anscombe's quartet for networks, revealed with spring layouts; bounds what the Datasaurus-for-networks work can claim (1 source)
 
 ## Entities
 
@@ -91,3 +101,4 @@ updated: 2026-07-06
 - [[hiveplotlib-bioinformatics-examples]] — Public example repo of real biological-network hive plots (C. elegans connectome, E. coli RegulonDB GRN) in the strongest adoption domain; honest finding that both are credible real-data demos but neither is a "hero" figure (real networks control for nothing, so comparisons collapse to density), with the instant-comparison hero relocated to the engineered Datasaurus-for-networks work. Reconciled 2026-07-04 against a bounded prior-art panel: both examples are re-tellings of published figures (Tabacof 2013 connectome, Cook 2019 dimorphism, Krzywinski 2012 GRN), the GRN role vocabulary is Yu & Gerstein 2006's (not Krzywinski's), the RegulonDB data is under a restrictive EULA (not CC-BY), and two "dead ends" (C. elegans position metadata, the structural dimorphism figure) are actually buildable (7 sources)
 - [[same-stats-different-graphs-grounding|Same Stats, Different Graphs: grounding & novelty]] — Literature-mode research run on the matched-degree-sequence demo: network-science foundations confirmed, a novel synthesis versus Chen et al. 2018 (which holds aggregate stats + spring layout, no hive plots), and the honest caveat that the discriminating power is the degree-rank ordering, not the hive glyph; plus the sexual-contact anchor correction (10 sources, web research)
 - [[spectral-hive-plots]] — Research direction: a hive plot driven entirely from a spectral decomposition (axes = spectral cuts, within-axis order = a higher eigenvector, edges = the affinity graph). Verdict: novel recombination of known parts, mechanism validated in diffusion-map chemistry; ranked chemistry use cases (10 sources)
+- [[dask-route-memory-bounding]]: Research run on bounding memory on the Dask rendering route. Passing `["x"], ["y"]` to `Canvas.line` leads as the combine, gated on further experiments and measured only at `num_steps=16` on one threaded machine; the cluster effect of every option is unmeasured (3 sources, web research)

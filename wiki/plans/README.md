@@ -20,7 +20,7 @@ If you're browsing the wiki for the *current state* of a design call, read the A
 - **`plans/`** (this directory) — active or unstarted plans only. Browsing here shows what's still in flight.
 - **`plans/archived/`** — shipped plans, kept for history. A plan moves there once its work has fully shipped, typically right after it promotes to an ADR, or after shipping for plans that won't become ADRs.
 
-Archiving is a manual move on the human's confirmation. Research Liaison proposes it (at ADR promotion, or in its post-task pass for non-ADR plans) but never moves files itself. Hold a technically-done plan in `plans/` if it's still bundled with unshipped work; decline the archive suggestion until the bundle ships.
+Archiving is a manual move on the human's confirmation. Record Keeper proposes it (at ADR promotion, or in its post-task pass for non-ADR plans) but never moves files itself. Hold a technically-done plan in `plans/` if it's still bundled with unshipped work; decline the archive suggestion until the bundle ships.
 
 ## Conventions
 

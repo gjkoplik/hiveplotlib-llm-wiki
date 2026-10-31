@@ -10,7 +10,7 @@ Shipped plans, kept for history. A plan moves here once its work has fully shipp
 
 Active and unstarted plans live one level up in [[plans/README|plans/]]. Keeping shipped plans out of that directory means browsing `plans/` shows only what's still in flight.
 
-Plans are moved here by the human on confirmation, not by agents. Research Liaison proposes archiving (at ADR promotion, or in its post-task pass for non-ADR plans) but never moves files itself.
+Plans are moved here by the human on confirmation, not by agents. Record Keeper proposes archiving (at ADR promotion, or in its post-task pass for non-ADR plans) but never moves files itself.
 
 ## See Also
 

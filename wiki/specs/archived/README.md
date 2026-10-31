@@ -12,7 +12,7 @@ Open specs live one level up in [[specs/README|specs/]]. Keeping closed ones out
 
 Nothing here is spent. A closed spec is the durable record of what was promised and what was delivered, so these pages are worth reading on their own: the outcome statement, the call shape a user was told to expect, and the dated sign-off block that carries the closing date. The disclaimer on the plans directory does not carry over.
 
-Specs are moved here by the human on confirmation, not by agents. Research Liaison proposes the move; agents never move spec files. Harness-self specs stay flat and untracked, so nothing from `agent-harness/.claude/specs/` lands here.
+Specs are moved here by the human on confirmation, not by agents. Record Keeper proposes the move; agents never move spec files. Harness-self specs stay flat and untracked, so nothing from `agent-harness/.claude/specs/` lands here.
 
 ## See Also
 
