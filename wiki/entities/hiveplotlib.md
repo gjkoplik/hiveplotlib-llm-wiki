@@ -2,7 +2,7 @@
 title: hiveplotlib
 type: entity
 created: 2026-04-06
-updated: 2026-10-31
+updated: 2026-11-02
 sources: [hiveplotlib-python-repo, krzywinski-2012]
 tags: [hiveplotlib, python, software, network-visualization, main-hub]
 ---
@@ -226,6 +226,7 @@ See [[examples-and-applications]] for the running catalog of worked examples and
 - [[0001-networkx-integration|ADR 0001 — NetworkX integration]] — Binding design record for the v0.28 NetworkX story
 - [[0002-performance-regression-harness|ADR 0002 — Performance regression + equivalence harness]] — Binding design record for the scaling milestone's gate
 - [[dask-route-memory-bounding]]: research run on the Dask route's memory, with a gated leading option and cluster effects unmeasured
+- [[scale-architecture]]: research run on rendering a billion-edge hive plot, with the copy-table route first at the batch threshold once the 1B-edge rows landed, and nothing exact under a minute
 - [[differential-hive-plot]] — Not yet implemented; potential feature
 - [[p2cp]] — Polar Parallel Coordinates
 - [[karate-club-walkthrough]] — Step-by-step example walkthrough

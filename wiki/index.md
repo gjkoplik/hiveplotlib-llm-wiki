@@ -1,7 +1,7 @@
 ---
 title: Wiki Index
 type: index
-updated: 2026-10-31
+updated: 2026-11-02
 ---
 
 # Hive Plot Research Wiki — Index
@@ -102,3 +102,4 @@ Signed statements of intent, one page each: the outcome in a user's vocabulary p
 - [[same-stats-different-graphs-grounding|Same Stats, Different Graphs: grounding & novelty]] — Literature-mode research run on the matched-degree-sequence demo: network-science foundations confirmed, a novel synthesis versus Chen et al. 2018 (which holds aggregate stats + spring layout, no hive plots), and the honest caveat that the discriminating power is the degree-rank ordering, not the hive glyph; plus the sexual-contact anchor correction (10 sources, web research)
 - [[spectral-hive-plots]] — Research direction: a hive plot driven entirely from a spectral decomposition (axes = spectral cuts, within-axis order = a higher eigenvector, edges = the affinity graph). Verdict: novel recombination of known parts, mechanism validated in diffusion-map chemistry; ranked chemistry use cases (10 sources)
 - [[dask-route-memory-bounding]]: Research run on bounding memory on the Dask rendering route. Passing `["x"], ["y"]` to `Canvas.line` leads as the combine, gated on further experiments and measured only at `num_steps=16` on one threaded machine; the cluster effect of every option is unmeasured (3 sources, web research)
+- [[scale-architecture]]: Research run on what it takes to render a 1B-edge, 100M-node hive plot. Nothing shows the target needs a new architecture or a language switch, and the target's edge render is measured after the gate at 180.5 s (`num_steps=16`) and 334 s (50) on one machine, passing a ten-minute batch bar and failing a one-minute one; at 1B nodes a bucketed sequential join does the 100M-edge lookup and render in about 11 minutes behind a 15-minute table build, 28 minutes end to end against 2 h 15 min (n=5); the DuckDB, GPU, cluster and compiled-core halves are inconclusive (3 sources, web research)

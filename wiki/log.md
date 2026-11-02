@@ -502,4 +502,14 @@ Pages updated: 3 (`entities/hiveplotlib.md`: version status, review queue "as of
 
 Landed a validated research run from 2026-10-30 as [[dask-route-memory-bounding]]: the list-of-one route leads for the combine, gated on further experiments, and the cluster half is validated inconclusive. This replaces the "nothing landed" status on the hub from today's weekly update. Pages created: 1. Pages updated: 2 (`index.md`, `entities/hiveplotlib.md`). Not committed.
 
+## [2026-11-02] research | Lazy-node lookup past one machine's memory
+
+Added the 2026-11-01 and 2026-11-02 experiments to [[dask-route-memory-bounding]]'s `What's open`, five samples each. On one machine a bucketed sequential join finishes 1B nodes / 100M edges in 28 minutes end to end, against 2 h 15 min for an on-disk table, and slows only 20% under a memory cap below its table's size. On a `LocalCluster`, an on-disk table mapped one slice at a time stopped the worker kills and beat the p2p shuffle in every setup. Copy at 100M nodes / 1B edges rendered in 180.5 s at `num_steps=16` and 334.3 s at 50, peaking at 9 GiB. No multi-machine cluster has run. Pages updated: 1. Not committed.
+
 Same day, the maintainer overruled two questionnaire answers: this work blocks branch `53`, and the 20M-node target was too small, with the new node target unset. Nodes get a lazy, datashader-only route on `53`, added beside the in-memory path. Recorded on the plan, [[dask-route-memory-bounding]] and the hub. Not committed.
+
+Same day, the page's single-machine experiments ran at five samples each and were added to its `What's open`: the list-of-one route held its gates, and neither lazy-node lookup shows a path past this machine's memory at 300M nodes. Nothing has run on a cluster. Not committed.
+
+## [2026-11-02] research | Scale architecture for a billion-edge hive plot
+
+Landed a research run from 2026-11-02 as [[scale-architecture]]: half validated finding, half validated inconclusive. Nothing shows the 1B-edge, 100M-node target needs a new architecture or a language switch, and the target itself stays unmeasured until the queued 1B-edge rows land; at 1B nodes a bucketed sequential join cut the 100M-edge lookup and render from about two hours to about eleven minutes (n=5), 28 minutes end to end with the shared table build against 2 h 15 min. The page flags the cuDF float-reduction record in `plans/scaling-large-networks.md` as contradicted at the datashader level, pending the maintainer's confirmation. Pages created: 1. Pages updated: 2 (`index.md`, `entities/hiveplotlib.md`). Not committed.

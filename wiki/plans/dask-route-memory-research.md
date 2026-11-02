@@ -424,6 +424,8 @@ All dispositions below were adopted under the async posture with the grill skipp
 **Target:** the page's `What's open`, from `### Proposed experiments`.
 **Rationale:** Lenses cannot measure, and only (d) needs a maintainer answer first. Deciding cells on the ranking will read `unmeasured` until these run.
 
+**Update 2026-10-31:** (e), (f), (h), (i), (k) and most of (j) ran at five samples each, plus lazy-node lookup comparisons up to 300M nodes and 300M edges. Results are in the page's `What's open` and `hiveplotlib-performance/synthetic_scaling/dask_partition_memory/RESULTS.md`. (d) still waits on questionnaire item 4.
+
 ### Deferred follow-up: false statements in notebook, docstring and error advice
 
 **Date:** 2026-10-30
